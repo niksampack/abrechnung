@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Abrechnung Form</title>
+
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body { font-family: Arial, sans-serif; background:#f4f6f8; padding:15px; }
+.card { background:#fff; padding:15px; border-radius:10px; margin-bottom:15px; }
+.row { display:flex; gap:10px; margin-bottom:8px; }
+input, textarea { width:100%; padding:10px; font-size:16px; }
+canvas { width:100%; height:150px; border:2px dashed #999; }
+button { padding:15px; width:100%; font-size:18px; background:#28a745; color:#fff; border:none; border-radius:8px; }
+</style>
+</head>
+
+<body>
+
+<div id="pdf-content">
+
+<h2 style="text-align:center">Abrechnung</h2>
+
+<div class="card">
+<label>Date</label>
+<input type="date" id="datum" />
+<label>Driver</label>
+<input type="text" id="fahrer" />
+</div>
+
+<div class="card">
+<strong>Income</strong>
+<div id="zeilen-container"></div>
+</div>
+
+<div class="card">
+<div class="row">Sum Income <input id="summe" readonly></div>
+<div class="row">Fuel (-) <input id="tanken" type="number" value="0" oninput="calc()"></div>
+<div class="row">Payout (-) <input id="auszahlung" type="number" value="0" oninput="calc()"></div>
+<div class="row"><strong>Total</strong> <input id="total" readonly></div>
+</div>
+
+<div class="card">
+<strong>Notes</strong>
+<textarea id="notizen" rows="3"></textarea>
+</div>
+
+<div class="card">
+<strong>Signature</strong>
+<canvas id="signature"></canvas>
+<button onclick="clearCanvas()">Clear</button>
+</div>
+
+</div>
+
+<button onclick="submitForm()">Submit & Send</button>
+
+<script>
+// ================= CONFIG =================
+emailjs.init("wnMWzGwyETIhHbBiB");
+
+const SERVICE_ID = "service_x5flog9";
+const TEMPLATE_ID = "template_sr76rb";
+
+const GOOGLE_SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbzF2heFc1Wf9XZsfLrJjWvhQ5j2BNpwv3ti5_8RzNGQDVCYc2SmVZz-njytBbKw8PGo/exec";
+// =========================================
+
+// income rows
+const container = document.getElementById("zeilen-container");
+for(let i=1;i<=15;i++){
+  container.innerHTML += `
+  <div class="row">
+    <input placeholder="Company">
+    <input type="number" class="betrag" oninput="calc()">
+  </div>`;
+}
+
+document.getElementById("datum").valueAsDate = new Date();
+
+function calc(){
+ let sum=0;
+ document.querySelectorAll(".betrag").forEach(e=>sum+=Number(e.value||0));
+ let fuel=Number(tanken.value||0);
+ let pay=Number(auszahlung.value||0);
+ summe.value=sum.toFixed(2);
+ total.value=(sum-fuel-pay).toFixed(2);
+}
+
+// signature
+const canvas=document.getElementById("signature");
+const ctx=canvas.getContext("2d");
+let draw=false;
+canvas.onmousedown=e=>{draw=true;ctx.moveTo(e.offsetX,e.offsetY);}
+canvas.onmousemove=e=>{if(draw){ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke();}}
+canvas.onmouseup=()=>draw=false;
+canvas.ontouchstart=e=>{draw=true;}
+canvas.ontouchmove=e=>{let t=e.touches[0];ctx.lineTo(t.clientX-canvas.offsetLeft,t.clientY-canvas.offsetTop);ctx.stroke();}
+canvas.ontouchend=()=>draw=false;
+function clearCanvas(){ctx.clearRect(0,0,canvas.width,canvas.height);}
+
+async function submitForm(){
+ const { jsPDF } = window.jspdf;
+ const pdf = new jsPDF();
+ const canvasImg = await html2canvas(document.getElementById("pdf-content"));
+ const img = canvasImg.toDataURL("image/png");
+ pdf.addImage(img,"PNG",0,0,210,(canvasImg.height*210)/canvasImg.width);
+ const pdfBlob = pdf.output("blob");
+
+ const fd = new FormData();
+ fd.append("file", pdfBlob);
+ fd.append("filename", `${datum.value}_${fahrer.value}.pdf`);
+
+ const res = await fetch(GOOGLE_SCRIPT_URL,{method:"POST",body:fd});
+ const data = await res.json();
+
+ emailjs.send(SERVICE_ID,TEMPLATE_ID,{
+   datum: datum.value,
+   fahrer: fahrer.value,
+   total: total.value,
+   pdf_link: data.url
+ }).then(()=>alert("Sent successfully"));
+}
+</script>
+
+</body>
+</html>
