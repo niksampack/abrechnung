@@ -10,7 +10,7 @@
   <style>
     body{font-family:sans-serif;margin:0;background:#f5f6f8;padding:10px;touch-action:manipulation}
     .card{background:#fff;border-radius:12px;padding:15px;margin-bottom:15px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
-    input, textarea{width:100%;padding:12px;margin-top:5px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box;font-size:16px} /* افزایش سایز برای موبایل */
+    input, textarea{width:100%;padding:12px;margin-top:5px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box;font-size:16px}
     .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
     .row{display:grid;grid-template-columns:25px 1fr 80px;gap:8px;margin:10px 0;align-items:center}
     #total { color: #28a745; font-weight: bold; background: #f0fff4; font-size: 1.2em; border: 2px solid #28a745; text-align:center}
@@ -50,7 +50,7 @@
     </div>
   </div>
 
-  <div class="card" style="background:#fdfdfd">
+  <div class="card">
     <strong>Unterschrift</strong>
     <canvas id="signature"></canvas>
     <button onclick="clearSign()" style="margin-top:10px; padding:10px; width:100%; border:1px solid #ccc; background:#eee; border-radius:5px">امضا پاک شود</button>
@@ -61,7 +61,10 @@
 <p id="status" style="text-align:center; font-weight:bold; color:#007bff; margin-top:10px"></p>
 
 <script>
+  // ۱. تنظیمات اولیه - شناسه‌ها را دقیق چک کن
   emailjs.init("wnMWzGwyETIhHbBiB");
+  const SERVICE_ID = "service_x5f1og9";
+  const TEMPLATE_ID = "template_gor1sa6";
 
   const zeilen = document.getElementById("zeilen");
   for(let i=1; i<=15; i++) {
@@ -78,17 +81,15 @@
     document.getElementById("total").value = (sum - t - a).toFixed(2);
   }
 
-  // بخش امضا - اصلاح شده برای موبایل
+  // بخش امضا
   const canvas = document.getElementById("signature");
   const ctx = canvas.getContext("2d");
   canvas.width = canvas.offsetWidth; 
   canvas.height = 200;
   ctx.lineWidth = 2;
-  ctx.lineCap = "round";
   ctx.strokeStyle = "#000";
 
   let drawing = false;
-
   function getPos(e) {
     const rect = canvas.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -116,14 +117,12 @@
   }, {passive: false});
 
   window.addEventListener("touchend", () => { drawing = false; });
-  
-  // برای ماوس
   canvas.onmousedown = (e) => { drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); };
   canvas.onmousemove = (e) => { if(drawing) { const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); } };
   window.onmouseup = () => { drawing = false; };
-
   function clearSign() { ctx.clearRect(0,0,canvas.width,canvas.height); }
 
+  // تابع ارسال اصلی
   async function submitForm() {
     const btn = document.getElementById("sendBtn");
     const status = document.getElementById("status");
@@ -132,7 +131,7 @@
     if(!fahrer) { alert("Bitte Fahrername eingeben!"); return; }
     
     btn.disabled = true;
-    status.textContent = "Wird gesendet...";
+    status.textContent = "Wird gesendet... Bitte warten";
 
     try {
       const { jsPDF } = window.jspdf;
@@ -143,21 +142,32 @@
       const pdfHeight = (canvasImg.height * pdfWidth) / canvasImg.width;
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      
+      // تبدیل به Base64
       const pdfBase64 = pdf.output("datauristring").split(',')[1];
 
-      await emailjs.send("service_x5f1og9", "template_gor1sa6", {
+      // ارسال به EmailJS
+      const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
         fahrer: fahrer,
         datum: document.getElementById("datum").value,
         total: document.getElementById("total").value + " CHF",
-        content: pdfBase64
+        content: pdfBase64 
       });
 
-      alert("Erfolgreich gesendet! ✅");
-      status.textContent = "Fertig! ✅";
+      if(response.status === 200) {
+        alert("Erfolgreich gesendet! ✅");
+        status.textContent = "Fertig! ✅";
+      } else {
+        throw new Error("EmailJS Error");
+      }
+
     } catch (e) {
+      console.error(e);
       alert("Fehler: " + e.message);
       status.textContent = "Fehlgeschlagen";
-    } finally { btn.disabled = false; }
+    } finally {
+      btn.disabled = false;
+    }
   }
 </script>
 </body>
