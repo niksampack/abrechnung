@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Abrechnung</title>
+  <title>Abrechnung NIK</title>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -13,10 +13,8 @@
     input, textarea{width:100%;padding:10px;margin-top:5px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box}
     .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
     .row{display:grid;grid-template-columns:30px 1fr 100px;gap:10px;margin:8px 0;align-items:center}
-    #tanken, #auszahlung { color: #dc3545; font-weight: bold; }
-    #total { color: #28a745; font-weight: bold; background: #f0fff4; font-size: 1.2em; border: 2px solid #28a745; }
+    #total { color: #28a745; font-weight: bold; background: #f0fff4; font-size: 1.2em; border: 2px solid #28a745; text-align:center}
     .btn{width:100%;padding:15px;background:#007bff;color:#fff;border:0;border-radius:10px;font-size:16px;cursor:pointer;font-weight:bold}
-    .btn:disabled{background:#ccc}
     canvas{width:100%;height:180px;border:1px dashed #ccc;background:#fff;margin-top:10px;touch-action:none}
     label{font-size:0.9em;color:#666}
   </style>
@@ -25,40 +23,33 @@
 
 <div id="pdf-content">
   <div class="card">
-    <h2>Abrechnung</h2>
+    <h2 style="margin:0">Abrechnung</h2>
+    <p style="font-size:0.8em; color:#888">NIK Transport</p>
     <div class="grid">
       <div><label>Datum</label><input id="datum" type="date"></div>
       <div><label>Fahrer</label><input id="fahrer" type="text" placeholder="Name"></div>
-      <div><label>Kennzeichen</label><input id="kennzeichen" type="text" placeholder="SO-..."></div>
+      <div><label>Auto</label><input id="kennzeichen" type="text" placeholder="Kennzeichen"></div>
     </div>
   </div>
 
-  <div class="card">
-    <strong>Einnahmen</strong>
-    <div id="zeilen"></div>
-  </div>
+  <div class="card"><strong>Einnahmen (CHF)</strong><div id="zeilen"></div></div>
 
   <div class="card">
     <div class="grid">
-      <div><label>Summe (CHF)</label><input id="sumIncome" readonly></div>
+      <div><label>Summe</label><input id="sumIncome" readonly></div>
       <div><label>Tanken (-)</label><input id="tanken" type="number" value="0" oninput="recalc()"></div>
       <div><label>Auszahlung (-)</label><input id="auszahlung" type="number" value="0" oninput="recalc()"></div>
     </div>
     <div style="margin-top:15px">
-      <label><strong>TOTAL (CHF)</strong></label>
+      <label><strong>NETTO TOTAL (CHF)</strong></label>
       <input id="total" readonly value="0.00">
     </div>
   </div>
 
   <div class="card">
-    <label>Notizen</label>
-    <textarea id="notizen" rows="3" placeholder="Zusätzliche Informationen..."></textarea>
-  </div>
-
-  <div class="card">
     <strong>Unterschrift</strong>
     <canvas id="signature"></canvas>
-    <button onclick="clearSign()" style="margin-top:5px; padding:5px 10px; border-radius:5px; border:1px solid #ccc; cursor:pointer">Löschen</button>
+    <button onclick="clearSign()" style="margin-top:5px; padding:8px; cursor:pointer">Löschen</button>
   </div>
 </div>
 
@@ -66,13 +57,7 @@
 <p id="status" style="text-align:center; font-weight:bold; color:#007bff"></p>
 
 <script>
-  // تنظیمات EmailJS
   emailjs.init("wnMWzGwyETIhHbBiB");
-  const SERVICE_ID = "service_x5f1og9";
-  const TEMPLATE_ID = "template_gor1sa6";
-
-  // !!! لینک Web App URL گوگل را دقیقاً اینجا جایگذاری کن !!!
-  const GOOGLE_URL = "https://script.google.com/macros/s/AKfycby8Tbv2f4IHE8FCb3fiSLwAAM5Z5KvdLmjvpped3aniTQLR3abauQlQFWA9MJHqtZ3W/exec";
 
   const zeilen = document.getElementById("zeilen");
   for(let i=1; i<=15; i++) {
@@ -93,7 +78,7 @@
   const ctx = canvas.getContext("2d");
   canvas.width = canvas.offsetWidth; canvas.height = 180;
   let drawing = false;
-  canvas.onmousedown = canvas.ontouchstart = (e) => { drawing = true; ctx.beginPath(); };
+  canvas.onmousedown = canvas.ontouchstart = () => { drawing = true; ctx.beginPath(); };
   canvas.onmousemove = canvas.ontouchmove = (e) => {
     if(!drawing) return;
     const rect = canvas.getBoundingClientRect();
@@ -109,47 +94,30 @@
     const btn = document.getElementById("sendBtn");
     const status = document.getElementById("status");
     const fahrer = document.getElementById("fahrer").value;
-    const total = document.getElementById("total").value;
 
-    if(!fahrer) { alert("Please enter Driver Name"); return; }
-    
+    if(!fahrer) { alert("Bitte Fahrername eingeben"); return; }
     btn.disabled = true;
-    status.textContent = "Sending... Please wait";
+    status.textContent = "Wird gesendet... Bitte warten";
 
     try {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF('p', 'mm', 'a4');
       const canvasImg = await html2canvas(document.getElementById("pdf-content"), {scale: 2});
-      const pdfBase64 = pdf.addImage(canvasImg.toDataURL("image/png"), 'PNG', 0, 0, 210, (canvasImg.height * 210) / canvasImg.width).output("datauristring");
+      const pdfBase64 = pdf.addImage(canvasImg.toDataURL("image/png"), 'PNG', 0, 0, 210, (canvasImg.height * 210) / canvasImg.width).output("datauristring").split(',')[1];
 
-      const formData = new URLSearchParams();
-      formData.append("file", pdfBase64);
-      formData.append("filename", `Abrechnung_${fahrer}.pdf`);
-
-      // ارسال به گوگل برای ذخیره در درایو
-      const res = await fetch(GOOGLE_URL, { 
-        method: "POST", 
-        body: formData,
-        headers: { "Content-Type": "application/x-www-form-urlencoded" }
+      await emailjs.send("service_x5f1og9", "template_gor1sa6", {
+        fahrer: fahrer,
+        datum: document.getElementById("datum").value,
+        total: document.getElementById("total").value + " CHF",
+        content: pdfBase64 // این همان متغیری است که در پنل اضافه کردی
       });
-      
-      const googleData = await res.json();
-      
-      if(googleData.result === "success") {
-        // ارسال ایمیل از طریق EmailJS
-        await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
-          fahrer: fahrer,
-          datum: document.getElementById("datum").value,
-          total: total + " CHF",
-          pdf_link: googleData.url
-        });
-        alert("Sent successfully! ✅");
-        status.textContent = "Done! ✅";
-      } else { throw new Error(googleData.error); }
+
+      alert("Erfolgreich gesendet! ✅");
+      status.textContent = "Fertig! ✅";
 
     } catch (e) {
-      alert("Error: " + e.message);
-      status.textContent = "Failed";
+      alert("Fehler: " + e.message);
+      status.textContent = "Fehlgeschlagen";
     } finally { btn.disabled = false; }
   }
 </script>
