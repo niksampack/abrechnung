@@ -60,12 +60,12 @@
 <p id="status" style="text-align:center; font-weight:bold; color:#007bff; margin-top:10px"></p>
 
 <script>
-  // Configuration for EmailJS
+  // 1. Initialisierung mit deinem Public Key
   emailjs.init("wnMWzGwyETIhHbBiB");
+
   const SERVICE_ID = "service_x5f1og9";
   const TEMPLATE_ID = "template_gor1sa6";
 
-  // Generate 15 rows for companies
   const zeilen = document.getElementById("zeilen");
   for(let i=1; i<=15; i++) {
     zeilen.innerHTML += `<div class="row"><span>${i}</span><input id="c_${i}" placeholder="Firma"><input id="a_${i}" type="number" value="0" oninput="recalc()"></div>`;
@@ -84,54 +84,33 @@
   // Signature Logic
   const canvas = document.getElementById("signature");
   const ctx = canvas.getContext("2d");
-  canvas.width = canvas.offsetWidth; 
-  canvas.height = 180;
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "#000";
+  canvas.width = canvas.offsetWidth; canvas.height = 180;
+  ctx.lineWidth = 2; ctx.strokeStyle = "#000";
 
   let drawing = false;
   function getPos(e) {
     const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return { x: clientX - rect.left, y: clientY - rect.top };
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: cx - rect.left, y: cy - rect.top };
   }
 
-  canvas.addEventListener("touchstart", (e) => {
-    if (e.target === canvas) {
-      drawing = true;
-      const pos = getPos(e);
-      ctx.beginPath();
-      ctx.moveTo(pos.x, pos.y);
-      e.preventDefault();
-    }
-  }, {passive: false});
-
-  canvas.addEventListener("touchmove", (e) => {
-    if (drawing) {
-      const pos = getPos(e);
-      ctx.lineTo(pos.x, pos.y);
-      ctx.stroke();
-      e.preventDefault();
-    }
-  }, {passive: false});
-
+  canvas.addEventListener("touchstart", (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); }, {passive: false});
+  canvas.addEventListener("touchmove", (e) => { if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); } }, {passive: false});
   window.addEventListener("touchend", () => { drawing = false; });
-  canvas.onmousedown = (e) => { drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); };
-  canvas.onmousemove = (e) => { if(drawing) { const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); } };
+  canvas.onmousedown = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
+  canvas.onmousemove = (e) => { if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); } };
   window.onmouseup = () => { drawing = false; };
   function clearSign() { ctx.clearRect(0,0,canvas.width,canvas.height); }
 
-  // Submit Function
+  // 2. Hauptfunktion Senden
   async function submitForm() {
     const btn = document.getElementById("sendBtn");
     const status = document.getElementById("status");
-    const fahrer = document.getElementById("fahrer").value;
-
-    if(!fahrer) { alert("Bitte Fahrername eingeben!"); return; }
+    const fahrerName = document.getElementById("fahrer").value || "Unbekannt";
     
     btn.disabled = true;
-    status.textContent = "Wird gesendet...";
+    status.textContent = "Wird gesendet... Bitte warten";
 
     try {
       const { jsPDF } = window.jspdf;
@@ -139,23 +118,22 @@
       
       const canvasImg = await html2canvas(document.getElementById("pdf-content"), { scale: 1.5 });
       const imgData = canvasImg.toDataURL("image/jpeg", 0.7);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvasImg.height * pdfWidth) / canvasImg.width;
-
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, 'JPEG', 5, 5, 200, (canvasImg.height * 200) / canvasImg.width);
+      
+      // 3. Base64 extrahieren (Wichtig für Variable Attachment)
       const pdfBase64 = pdf.output("datauristring").split(',')[1];
 
       await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
-        fahrer: fahrer,
+        fahrer: fahrerName,
         datum: document.getElementById("datum").value,
         total: document.getElementById("total").value + " CHF",
-        content: pdfBase64 // Sent as Variable Attachment
+        content: pdfBase64 // Dieser Wert geht an "Variable Attachment" im Panel
       });
 
       alert("Erfolgreich gesendet! ✅");
       status.textContent = "Fertig! ✅";
     } catch (e) {
-      alert("Fehler: " + e.message);
+      alert("Fehler: " + (e.text || e.message));
       status.textContent = "Fehlgeschlagen";
     } finally { btn.disabled = false; }
   }
