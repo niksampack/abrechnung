@@ -3,10 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Abrechnung NIK Pro</title>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <title>Abrechnung NIK PRO</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     body{font-family:sans-serif;margin:0;background:#f5f6f8;padding:10px;touch-action:manipulation}
     .card{background:#fff;border-radius:12px;padding:15px;margin-bottom:15px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
@@ -15,20 +13,24 @@
     .row{display:grid;grid-template-columns:25px 1fr 80px;gap:8px;margin:10px 0;align-items:center}
     #total { color: #28a745; font-weight: bold; background: #f0fff4; font-size: 1.2em; border: 2px solid #28a745; text-align:center}
     .btn{width:100%;padding:18px;background:#007bff;color:#fff;border:0;border-radius:10px;font-size:18px;cursor:pointer;font-weight:bold}
-    canvas{width:100%;height:180px;border:2px dashed #bbb;background:#fff;margin-top:10px;touch-action:none;border-radius:8px}
+    canvas{width:100%;height:150px;border:2px dashed #bbb;background:#fff;margin-top:10px;touch-action:none;border-radius:8px}
     label{font-size:0.85em;color:#555;font-weight:bold}
+    h2{margin:0;color:#333}
   </style>
 </head>
 <body>
 
-<div id="pdf-content">
+<form id="form">
+  <input type="hidden" name="access_key" value="817b5739-ed89-4340-9674-57d210b081b7">
+  <input type="hidden" name="subject" value="Neue Abrechnung NIK Transport">
+  <input type="hidden" name="from_name" value="NIK System">
+
   <div class="card">
-    <h2 style="margin:0">Abrechnung</h2>
-    <p style="margin:0 0 10px 0; color:#888; font-size:0.8em">NIK Transport</p>
+    <h2>Abrechnung</h2>
     <div class="grid">
-      <div><label>Datum</label><input id="datum" type="date"></div>
-      <div><label>Fahrer</label><input id="fahrer" type="text" placeholder="Name"></div>
-      <div><label>Auto</label><input id="kennzeichen" type="text" placeholder="SO..."></div>
+      <div><label>Datum</label><input name="datum" id="datum" type="date"></div>
+      <div><label>Fahrer</label><input name="fahrer" id="fahrer" type="text" required placeholder="Name"></div>
+      <div><label>Auto</label><input name="auto" id="kennzeichen" type="text" placeholder="SO..."></div>
     </div>
   </div>
 
@@ -40,31 +42,31 @@
   <div class="card">
     <div class="grid">
       <div><label>Summe</label><input id="sumIncome" readonly></div>
-      <div><label>Tanken</label><input id="tanken" type="number" value="0" oninput="recalc()"></div>
-      <div><label>Auszahlung</label><input id="auszahlung" type="number" value="0" oninput="recalc()"></div>
+      <div><label>Tanken</label><input name="tanken" id="tanken" type="number" value="0" oninput="recalc()"></div>
+      <div><label>Auszahlung</label><input name="auszahlung" id="auszahlung" type="number" value="0" oninput="recalc()"></div>
     </div>
     <div style="margin-top:15px">
       <label>NETTO TOTAL (CHF)</label>
-      <input id="total" readonly value="0.00">
+      <input name="total_final" id="total" readonly>
     </div>
   </div>
 
   <div class="card">
     <strong>Unterschrift</strong>
     <canvas id="signature"></canvas>
-    <button onclick="clearSign()" style="margin-top:10px; padding:10px; width:100%; border:1px solid #ccc; background:#eee; border-radius:5px">Löschen</button>
+    <button type="button" onclick="clearSign()" style="margin-top:10px; padding:10px; width:100%; border:1px solid #ccc; background:#eee; border-radius:5px">Löschen</button>
   </div>
-</div>
 
-<button class="btn" id="sendBtn" onclick="submitForm()">Senden & PDF erstellen</button>
-<p id="status" style="text-align:center; font-weight:bold; color:#007bff; margin-top:10px"></p>
+  <button class="btn" type="submit" id="sendBtn">Senden</button>
+</form>
+
+<p id="result" style="text-align:center; font-weight:bold; margin-top:15px; font-size:18px"></p>
 
 <script>
-  emailjs.init("wnMWzGwyETIhHbBiB");
-
+  // ردیف‌های ورودی شرکت‌ها
   const zeilen = document.getElementById("zeilen");
   for(let i=1; i<=15; i++) {
-    zeilen.innerHTML += `<div class="row"><span>${i}</span><input id="c_${i}" placeholder="Firma"><input id="a_${i}" type="number" value="0" oninput="recalc()"></div>`;
+    zeilen.innerHTML += `<div class="row"><span>${i}</span><input name="firma_${i}" id="c_${i}" placeholder="Firma"><input name="betrag_${i}" id="a_${i}" type="number" value="0" oninput="recalc()"></div>`;
   }
   document.getElementById('datum').valueAsDate = new Date();
 
@@ -74,64 +76,108 @@
     document.getElementById("sumIncome").value = sum.toFixed(2);
     let t = Number(document.getElementById("tanken").value || 0);
     let a = Number(document.getElementById("auszahlung").value || 0);
-    document.getElementById("total").value = (sum - t - a).toFixed(2);
+    document.getElementById("total").value = (sum - t - a).toFixed(2) + " CHF";
   }
 
+  // سیستم امضا
   const canvas = document.getElementById("signature");
   const ctx = canvas.getContext("2d");
-  canvas.width = canvas.offsetWidth; canvas.height = 180;
+  canvas.width = canvas.offsetWidth; canvas.height = 150;
   ctx.lineWidth = 2; ctx.strokeStyle = "#000";
-
   let drawing = false;
-  function getPos(e) {
+
+  const getPos = (e) => {
     const rect = canvas.getBoundingClientRect();
     const cx = e.touches ? e.touches[0].clientX : e.clientX;
     const cy = e.touches ? e.touches[0].clientY : e.clientY;
     return { x: cx - rect.left, y: cy - rect.top };
-  }
+  };
 
   canvas.addEventListener("touchstart", (e) => { 
-    drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); 
-    if(e.target === canvas) e.preventDefault();
+    if (e.target === canvas) {
+      drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); e.preventDefault();
+    }
   }, {passive: false});
+
   canvas.addEventListener("touchmove", (e) => { 
     if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); } 
   }, {passive: false});
-  window.addEventListener("touchend", () => { drawing = false; });
+
+  window.addEventListener("touchend", () => drawing = false);
+  canvas.onmousedown = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
+  canvas.onmousemove = (e) => { if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); } };
+  window.onmouseup = () => drawing = false;
   function clearSign() { ctx.clearRect(0,0,canvas.width,canvas.height); }
 
-  async function submitForm() {
+  // تابع ارسال فرم به سرویس جدید
+  const form = document.getElementById('form');
+  const result = document.getElementById('result');
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
     const btn = document.getElementById("sendBtn");
-    const status = document.getElementById("status");
     btn.disabled = true;
-    status.textContent = "Wird gesendet...";
+    result.style.color = "#007bff";
+    result.innerHTML = "Wird gesendet... Bitte warten";
 
     try {
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdf = new jsPDF();
       
-      // کاهش کیفیت برای عبور از سقف متغیرهای متنی
-      const canvasImg = await html2canvas(document.getElementById("pdf-content"), { scale: 1 });
-      const imgData = canvasImg.toDataURL("image/jpeg", 0.5);
-      pdf.addImage(imgData, 'JPEG', 5, 5, 200, (canvasImg.height * 200) / canvasImg.width);
+      // طراحی فایل PDF
+      pdf.setFontSize(20);
+      pdf.text("Abrechnung NIK Transport", 10, 20);
+      pdf.setFontSize(12);
+      pdf.text("Fahrer: " + document.getElementById("fahrer").value, 10, 35);
+      pdf.text("Datum: " + document.getElementById("datum").value, 10, 42);
+      pdf.text("Auto: " + document.getElementById("kennzeichen").value, 10, 49);
       
-      // استخراج Base64 خام بدون پیشوند برای بخش Variable Attachment
-      const pdfBase64 = pdf.output("datauristring").split(',')[1];
+      let y = 65;
+      pdf.text("Einnahmen Detail:", 10, y);
+      y += 10;
+      for(let i=1; i<=15; i++) {
+        const f = document.getElementById("c_"+i).value;
+        const b = document.getElementById("a_"+i).value;
+        if(f || b > 0) {
+          pdf.text(i + ". " + (f || "-") + ": " + b + " CHF", 15, y);
+          y += 8;
+        }
+      }
+      y += 10;
+      pdf.setFontSize(14);
+      pdf.text("NETTO TOTAL: " + document.getElementById("total").value, 10, y);
 
-      await emailjs.send("service_x5f1og9", "template_gor1sa6", {
-        fahrer: document.getElementById("fahrer").value || "Driver",
-        datum: document.getElementById("datum").value,
-        total: document.getElementById("total").value + " CHF",
-        content: pdfBase64 
+      // پیوست امضا
+      const sigData = canvas.toDataURL("image/jpeg", 0.5);
+      pdf.addImage(sigData, 'JPEG', 10, y+10, 60, 30);
+
+      // تبدیل به Blob برای آپلود
+      const pdfBlob = pdf.output('blob');
+      const formData = new FormData(form);
+      formData.append("attachment", pdfBlob, "Abrechnung_" + document.getElementById("fahrer").value + ".pdf");
+
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: formData
       });
 
-      alert("Erfolgreich gesendet! ✅");
-      status.textContent = "Fertig! ✅";
-    } catch (e) {
-      alert("Error: " + (e.text || e.message));
-      status.textContent = "Fehlgeschlagen";
-    } finally { btn.disabled = false; }
-  }
+      if (response.status == 200) {
+        result.style.color = "#28a745";
+        result.innerHTML = "Erfolgreich gesendet! ✅";
+        form.reset();
+        clearSign();
+        document.getElementById('datum').valueAsDate = new Date();
+      } else {
+        result.style.color = "#dc3545";
+        result.innerHTML = "Senden fehlgeschlagen. Bitte erneut versuchen.";
+      }
+    } catch (error) {
+        result.style.color = "#dc3545";
+        result.innerHTML = "Verbindungsfehler!";
+    } finally {
+        btn.disabled = false;
+    }
+  });
 </script>
 </body>
 </html>
