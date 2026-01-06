@@ -132,7 +132,8 @@
         #submit-btn { background: var(--success-color); }
         #clear-btn { background: var(--danger-color); }
 
-        #pdf-template { display: none; padding: 40px; color: #000; }
+        /* طرح مخصوص PDF */
+        #pdf-template { display: none; padding: 40px; color: #000; background: white; }
         .pdf-header { border-bottom: 3px solid #000; padding-bottom: 15px; margin-bottom: 25px; text-align: center; }
     </style>
 </head>
@@ -144,11 +145,11 @@
         <div class="header-fields">
             <div>
                 <label>Fahrername</label>
-                <input type="text" id="driver-name" placeholder="Name Nachname" required>
+                <input type="text" id="driver-name" required>
             </div>
             <div>
                 <label>Autokennzeichen</label>
-                <input type="text" id="car-plate" placeholder="ZH 123456" required>
+                <input type="text" id="car-plate" required>
             </div>
             <div>
                 <label>Datum</label>
@@ -172,17 +173,17 @@
         <div class="extra-fields">
             <div class="extra-box">
                 <label>Tanken (-)</label>
-                <input type="number" id="tanken" step="0.01" placeholder="0.00" oninput="calculateTotal()">
+                <input type="number" id="tanken" step="0.01" oninput="calculateTotal()">
             </div>
             <div class="extra-box">
                 <label>Auszahlung (-)</label>
-                <input type="number" id="auszahlung" step="0.01" placeholder="0.00" oninput="calculateTotal()">
+                <input type="number" id="auszahlung" step="0.01" oninput="calculateTotal()">
             </div>
         </div>
 
         <div class="notes-area">
             <label>Notizen</label>
-            <textarea id="notes" placeholder="Optionale Notizen..."></textarea>
+            <textarea id="notes"></textarea>
         </div>
 
         <div id="total-display">Gesamt: <span id="total-val">0.00</span> CHF</div>
@@ -204,18 +205,18 @@
         <h1 style="margin:0;">Abrechnungsbeleg</h1>
         <p>Datum: <span id="p-date"></span></p>
     </div>
-    <div style="font-size: 16px;">
+    <div style="font-size: 16px; line-height: 1.6;">
         <p><strong>Fahrer:</strong> <span id="p-name"></span></p>
         <p><strong>Kennzeichen:</strong> <span id="p-plate"></span></p>
     </div>
-    <div id="p-items" style="margin: 20px 0;"></div>
-    <div style="background: #f1f5f9; padding: 15px; border-radius: 8px;">
-        <p><strong>Tanken (Abzug):</strong> -<span id="p-tanken">0</span> CHF</p>
-        <p><strong>Auszahlung (Abzug):</strong> -<span id="p-auszahlung">0</span> CHF</p>
+    <div id="p-items" style="margin: 20px 0; border-top: 1px solid #eee;"></div>
+    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #e2e8f0;">
+        <p><strong>Tanken (Abzug):</strong> -<span id="p-tanken">0.00</span> CHF</p>
+        <p><strong>Auszahlung (Abzug):</strong> -<span id="p-auszahlung">0.00</span> CHF</p>
         <p><strong>Notizen:</strong> <span id="p-notes"></span></p>
     </div>
     <div style="text-align: right; font-size: 22px; font-weight: bold; border-top: 2px solid #000; margin-top: 20px; padding-top: 10px;">
-        Total: <span id="p-total"></span> CHF
+        Endbetrag: <span id="p-total"></span> CHF
     </div>
     <div style="margin-top: 50px;">
         <p><strong>Unterschrift:</strong></p>
@@ -224,15 +225,17 @@
 </div>
 
 <script>
+    // تنظیم تاریخ پیش‌فرض
     document.getElementById('current-date').valueAsDate = new Date();
 
+    // ایجاد ردیف‌های جدول
     const tableBody = document.getElementById('company-rows');
     for (let i = 1; i <= 15; i++) {
         tableBody.innerHTML += `
             <tr>
                 <td class="col-nr">${i}</td>
-                <td class="col-firma"><input type="text" class="firma-input" placeholder="Name..."></td>
-                <td class="col-betrag"><input type="number" class="f-amt" step="0.01" placeholder="0.00" oninput="calculateTotal()"></td>
+                <td class="col-firma"><input type="text" class="firma-input"></td>
+                <td class="col-betrag"><input type="number" class="f-amt" step="0.01" oninput="calculateTotal()"></td>
             </tr>`;
     }
 
@@ -244,6 +247,7 @@
         document.getElementById('total-val').textContent = sum.toFixed(2);
     }
 
+    // تنظیمات بوم امضا
     const canvas = document.getElementById('sig-canvas');
     const ctx = canvas.getContext('2d');
     let drawing = false;
@@ -261,23 +265,22 @@
         const clientY = e.clientY || (e.touches && e.touches[0].clientY);
         return { x: clientX - rect.left, y: clientY - rect.top };
     }
-    const start = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
-    const move = (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineWidth = 2; ctx.lineTo(p.x, p.y); ctx.stroke(); };
-    const stop = () => drawing = false;
-
-    canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', stop);
-    canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', move); canvas.addEventListener('touchend', stop);
-
+    canvas.addEventListener('mousedown', (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('mousemove', (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    window.addEventListener('mouseup', () => drawing = false);
+    canvas.addEventListener('touchstart', (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('touchmove', (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
     function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
+    // ارسال فرم و تولید PDF
     document.getElementById('main-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submit-btn');
         btn.disabled = true; btn.innerHTML = "Wird gesendet...";
 
-        // کلید اختصاصی شما جایگذاری شد
-        const MY_ACCESS_KEY = "817b5739-ed89-4340-9674-57d210b081b7"; 
+        const MY_ACCESS_KEY = "817b5739-ed89-4340-9674-57d210b081b7";
 
+        // انتقال داده‌ها به قالب PDF
         const dateVal = new Date(document.getElementById('current-date').value).toLocaleDateString('de-DE');
         document.getElementById('p-date').textContent = dateVal;
         document.getElementById('p-name').textContent = document.getElementById('driver-name').value;
@@ -289,19 +292,30 @@
         document.getElementById('p-sig').src = canvas.toDataURL();
 
         const pItems = document.getElementById('p-items');
-        pItems.innerHTML = '<div style="display:flex; justify-content:space-between; font-weight:bold; border-bottom:1px solid #000; padding-bottom:5px;"><span>Firma</span><span>Betrag</span></div>';
+        pItems.innerHTML = '<div style="display:flex; justify-content:space-between; font-weight:bold; border-bottom:2px solid #333; padding:10px 0;"><span>Firma</span><span>Betrag</span></div>';
+        
         document.querySelectorAll('.f-amt').forEach((input) => {
             const fName = input.closest('tr').querySelector('.firma-input').value;
             if(parseFloat(input.value) > 0) {
-                pItems.innerHTML += `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #eee;"><span>${fName || 'Diverses'}</span><span>${parseFloat(input.value).toFixed(2)} CHF</span></div>`;
+                pItems.innerHTML += `<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;"><span>${fName || 'Diverses'}</span><span>${parseFloat(input.value).toFixed(2)} CHF</span></div>`;
             }
         });
 
+        // رندر کردن PDF با وقفه برای جلوگیری از صفحه سفید
         const element = document.getElementById('pdf-template');
         element.style.display = 'block';
         
         try {
-            const opt = { margin: 10, filename: 'Abrechnung.pdf', image: {type:'jpeg', quality:1}, html2canvas: {scale: 2}, jsPDF: {unit:'mm', format:'a4'} };
+            await new Promise(resolve => setTimeout(resolve, 800)); // وقفه ۸۰۰ میلی‌ثانیه‌ای
+
+            const opt = { 
+                margin: 10, 
+                filename: 'Abrechnung.pdf', 
+                image: { type: 'jpeg', quality: 1 }, 
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+            };
+
             const pdfBlob = await html2pdf().from(element).set(opt).output('blob');
             element.style.display = 'none';
 
@@ -309,13 +323,21 @@
             fd.append("access_key", MY_ACCESS_KEY); 
             fd.append("attachment", pdfBlob, "Abrechnung.pdf");
             fd.append("from_name", document.getElementById('driver-name').value);
+            fd.append("subject", "Abrechnung von " + document.getElementById('driver-name').value);
 
-            const res = await fetch("https://api.web3forms.com/submit", {method: "POST", body: fd});
+            const res = await fetch("https://api.web3forms.com/submit", { method: "POST", body: fd });
             if((await res.json()).success) {
                 alert("Erfolgreich gesendet!");
                 location.reload();
-            } else { alert("Fehler!"); btn.disabled = false; }
-        } catch (err) { alert("Fehler!"); btn.disabled = false; }
+            } else {
+                alert("Fehler beim Senden!");
+                btn.disabled = false;
+            }
+        } catch (err) {
+            alert("Fehler!");
+            btn.disabled = false;
+            element.style.display = 'none';
+        }
     });
 </script>
 </body>
