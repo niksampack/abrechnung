@@ -3,28 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Abrechnung NIK</title>
+  <title>Abrechnung NIK Pro</title>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     body{font-family:sans-serif;margin:0;background:#f5f6f8;padding:10px;touch-action:manipulation}
     .card{background:#fff;border-radius:12px;padding:15px;margin-bottom:15px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
-    input, textarea{width:100%;padding:12px;margin-top:5px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box;font-size:16px}
+    input{width:100%;padding:12px;margin-top:5px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box;font-size:16px}
     .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
     .row{display:grid;grid-template-columns:25px 1fr 80px;gap:8px;margin:10px 0;align-items:center}
     #total { color: #28a745; font-weight: bold; background: #f0fff4; font-size: 1.2em; border: 2px solid #28a745; text-align:center}
     .btn{width:100%;padding:18px;background:#007bff;color:#fff;border:0;border-radius:10px;font-size:18px;cursor:pointer;font-weight:bold}
-    canvas{width:100%;height:200px;border:2px dashed #bbb;background:#fff;margin-top:10px;touch-action:none;border-radius:8px}
+    canvas{width:100%;height:180px;border:2px dashed #bbb;background:#fff;margin-top:10px;touch-action:none;border-radius:8px}
     label{font-size:0.85em;color:#555;font-weight:bold}
-    h2{margin:0;color:#333}
   </style>
 </head>
 <body>
 
 <div id="pdf-content">
   <div class="card">
-    <h2>Abrechnung</h2>
+    <h2 style="margin:0">Abrechnung</h2>
     <p style="margin:0 0 10px 0; color:#888; font-size:0.8em">NIK Transport</p>
     <div class="grid">
       <div><label>Datum</label><input id="datum" type="date"></div>
@@ -53,7 +52,7 @@
   <div class="card">
     <strong>Unterschrift</strong>
     <canvas id="signature"></canvas>
-    <button onclick="clearSign()" style="margin-top:10px; padding:10px; width:100%; border:1px solid #ccc; background:#eee; border-radius:5px">امضا پاک شود</button>
+    <button onclick="clearSign()" style="margin-top:10px; padding:10px; width:100%; border:1px solid #ccc; background:#eee; border-radius:5px">Löschen</button>
   </div>
 </div>
 
@@ -61,11 +60,12 @@
 <p id="status" style="text-align:center; font-weight:bold; color:#007bff; margin-top:10px"></p>
 
 <script>
-  // ۱. تنظیمات اولیه - شناسه‌ها را دقیق چک کن
+  // Configuration for EmailJS
   emailjs.init("wnMWzGwyETIhHbBiB");
   const SERVICE_ID = "service_x5f1og9";
   const TEMPLATE_ID = "template_gor1sa6";
 
+  // Generate 15 rows for companies
   const zeilen = document.getElementById("zeilen");
   for(let i=1; i<=15; i++) {
     zeilen.innerHTML += `<div class="row"><span>${i}</span><input id="c_${i}" placeholder="Firma"><input id="a_${i}" type="number" value="0" oninput="recalc()"></div>`;
@@ -81,11 +81,11 @@
     document.getElementById("total").value = (sum - t - a).toFixed(2);
   }
 
-  // بخش امضا
+  // Signature Logic
   const canvas = document.getElementById("signature");
   const ctx = canvas.getContext("2d");
   canvas.width = canvas.offsetWidth; 
-  canvas.height = 200;
+  canvas.height = 180;
   ctx.lineWidth = 2;
   ctx.strokeStyle = "#000";
 
@@ -122,7 +122,7 @@
   window.onmouseup = () => { drawing = false; };
   function clearSign() { ctx.clearRect(0,0,canvas.width,canvas.height); }
 
-  // تابع ارسال اصلی
+  // Submit Function
   async function submitForm() {
     const btn = document.getElementById("sendBtn");
     const status = document.getElementById("status");
@@ -131,43 +131,33 @@
     if(!fahrer) { alert("Bitte Fahrername eingeben!"); return; }
     
     btn.disabled = true;
-    status.textContent = "Wird gesendet... Bitte warten";
+    status.textContent = "Wird gesendet...";
 
     try {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const canvasImg = await html2canvas(document.getElementById("pdf-content"), {scale: 2});
-      const imgData = canvasImg.toDataURL("image/png");
+      
+      const canvasImg = await html2canvas(document.getElementById("pdf-content"), { scale: 1.5 });
+      const imgData = canvasImg.toDataURL("image/jpeg", 0.7);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvasImg.height * pdfWidth) / canvasImg.width;
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      
-      // تبدیل به Base64
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
       const pdfBase64 = pdf.output("datauristring").split(',')[1];
 
-      // ارسال به EmailJS
-      const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
+      await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
         fahrer: fahrer,
         datum: document.getElementById("datum").value,
         total: document.getElementById("total").value + " CHF",
-        content: pdfBase64 
+        content: pdfBase64 // Sent as Variable Attachment
       });
 
-      if(response.status === 200) {
-        alert("Erfolgreich gesendet! ✅");
-        status.textContent = "Fertig! ✅";
-      } else {
-        throw new Error("EmailJS Error");
-      }
-
+      alert("Erfolgreich gesendet! ✅");
+      status.textContent = "Fertig! ✅";
     } catch (e) {
-      console.error(e);
       alert("Fehler: " + e.message);
       status.textContent = "Fehlgeschlagen";
-    } finally {
-      btn.disabled = false;
-    }
+    } finally { btn.disabled = false; }
   }
 </script>
 </body>
