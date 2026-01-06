@@ -154,7 +154,7 @@
       // تبدیل به Blob برای آپلود
       const pdfBlob = pdf.output('blob');
       const formData = new FormData(form);
-      formData.append("attachment", pdfBlob, "Abrechnung_" + document.getElementById("fahrer").value + ".pdf");
+      formData.append(//"attachment", pdfBlob, "Abrechnung_" + document.getElementById("fahrer").value + ".pdf");
 
       const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
@@ -181,3 +181,4 @@
 </script>
 </body>
 </html>
+
