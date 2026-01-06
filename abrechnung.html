@@ -7,45 +7,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
-            --primary-color: #1e3a8a;
-            --secondary-color: #3b82f6;
-            --accent-color: #f59e0b;
-            --danger-color: #ef4444;
-            --success-color: #10b981;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
+            --primary-color: #1e3a8a; --secondary-color: #3b82f6; --bg-color: #f8fafc;
         }
-
-        body { font-family: 'Inter', sans-serif; background: var(--bg-color); padding: 20px; color: var(--text-main); margin: 0; }
-        .container { max-width: 900px; margin: auto; background: var(--card-bg); padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--primary-color); border-bottom: 3px solid var(--secondary-color); padding-bottom: 10px; text-transform: uppercase; }
-
-        .header-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; background: #f1f5f9; padding: 20px; border-radius: 12px; }
-        .header-fields label { display: block; font-weight: 600; margin-bottom: 8px; color: var(--primary-color); }
-        .header-fields input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
-
-        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-color); padding: 15px; margin: 0; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: var(--primary-color); border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px; }
+        .header-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .header-fields input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: left; }
         th { background: var(--primary-color); color: white; }
-        .col-nr { width: 40px; } .col-firma { width: 70%; } .col-betrag { width: 25%; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; }
-
-        .extra-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .extra-box { background: #fffbeb; padding: 20px; border-radius: 12px; border: 1px solid #fde68a; }
-        textarea { width: 100%; height: 80px; padding: 10px; border-radius: 12px; border: 1px solid #cbd5e1; resize: none; box-sizing: border-box; }
-
-        #total-display { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 20px; font-size: 24px; font-weight: 800; text-align: center; margin: 30px 0; border-radius: 15px; }
-        .sig-wrapper { background: #f1f5f9; padding: 15px; border-radius: 15px; border: 2px dashed #cbd5e1; }
-        canvas { width: 100%; height: 180px; background: #fff; border-radius: 10px; touch-action: none; }
-        .btn-group { display: flex; gap: 15px; margin-top: 30px; }
-        button { flex: 1; padding: 18px; border-radius: 12px; border: none; font-weight: 700; color: white; cursor: pointer; }
-        #submit-btn { background: var(--success-color); } #clear-btn { background: var(--danger-color); }
-
-        /* طرح مخصوص PDF */
-        #pdf-template { display: none; padding: 40px; color: #000; background: white; width: 700px; }
-        .pdf-header { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
-        .pdf-table-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 5px; box-sizing: border-box; }
+        .extra-box { background: #fffbeb; padding: 15px; border-radius: 10px; border: 1px solid #fde68a; margin-bottom: 15px; }
+        #total-display { background: var(--primary-color); color: white; padding: 15px; font-size: 20px; text-align: center; border-radius: 10px; margin: 20px 0; font-weight: bold; }
+        canvas { width: 100%; height: 150px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; touch-action: none; }
+        .btn-group { display: flex; gap: 10px; }
+        button { flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; color: white; }
+        #submit-btn { background: #10b981; } #clear-btn { background: #ef4444; }
     </style>
 </head>
 <body>
@@ -54,66 +32,38 @@
     <h2>Abrechnung</h2>
     <form id="main-form">
         <div class="header-fields">
-            <div><label>Fahrername</label><input type="text" id="driver-name" required></div>
-            <div><label>Autokennzeichen</label><input type="text" id="car-plate" required></div>
-            <div><label>Datum</label><input type="date" id="current-date" required></div>
+            <input type="text" id="driver-name" placeholder="Fahrername" required>
+            <input type="text" id="car-plate" placeholder="Kennzeichen" required>
+            <input type="date" id="current-date" required>
         </div>
-
         <table>
-            <thead><tr><th class="col-nr">#</th><th class="col-firma">Firma</th><th class="col-betrag">Betrag (CHF)</th></tr></thead>
+            <thead><tr><th>#</th><th>Firma</th><th>Betrag</th></tr></thead>
             <tbody id="company-rows"></tbody>
         </table>
-
-        <div class="extra-fields">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
             <div class="extra-box"><label>Tanken (-)</label><input type="number" id="tanken" step="0.01" oninput="calculateTotal()"></div>
             <div class="extra-box"><label>Auszahlung (-)</label><input type="number" id="auszahlung" step="0.01" oninput="calculateTotal()"></div>
         </div>
-
-        <div style="margin-top:20px;"><label>Notizen</label><textarea id="notes"></textarea></div>
-        <div id="total-display">Gesamt: <span id="total-val">0.00</span> CHF</div>
-
-        <label>Unterschrift</label>
-        <div class="sig-wrapper"><canvas id="sig-canvas"></canvas></div>
-        
+        <textarea id="notes" style="width:100%; height:60px; padding:10px; border-radius:8px; border:1px solid #cbd5e1;" placeholder="Notizen..."></textarea>
+        <div id="total-display">TOTAL: <span id="total-val">0.00</span> CHF</div>
+        <canvas id="sig-canvas"></canvas>
         <div class="btn-group">
             <button type="button" id="clear-btn" onclick="clearSig()">Löschen</button>
-            <button type="submit" id="submit-btn">Als PDF senden</button>
+            <button type="submit" id="submit-btn">Senden</button>
         </div>
     </form>
-</div>
-
-<div id="pdf-template">
-    <div class="pdf-header"><h1>Abrechnungsbeleg</h1><p>Datum: <span id="p-date"></span></p></div>
-    <div style="font-size: 16px; margin-bottom: 20px;">
-        <p><strong>Fahrer:</strong> <span id="p-name"></span></p>
-        <p><strong>Kennzeichen:</strong> <span id="p-plate"></span></p>
-    </div>
-    <div id="p-items-list" style="border-top: 1px solid #000; padding-top: 10px;">
-        </div>
-    <div style="background: #f1f5f9; padding: 15px; margin-top: 20px;">
-        <p><strong>Tanken:</strong> -<span id="p-tanken">0.00</span> CHF</p>
-        <p><strong>Auszahlung:</strong> -<span id="p-auszahlung">0.00</span> CHF</p>
-        <p><strong>Notizen:</strong> <span id="p-notes"></span></p>
-    </div>
-    <div style="text-align: right; font-size: 22px; font-weight: bold; border-top: 2px solid #000; margin-top: 20px; padding-top: 10px;">
-        Total: <span id="p-total"></span> CHF
-    </div>
-    <div style="margin-top: 40px;">
-        <p><strong>Unterschrift:</strong></p>
-        <img id="p-sig" style="width: 250px; border-bottom: 1px solid #000;">
-    </div>
 </div>
 
 <script>
     document.getElementById('current-date').valueAsDate = new Date();
     const tableBody = document.getElementById('company-rows');
     for (let i = 1; i <= 15; i++) {
-        tableBody.innerHTML += `<tr><td class="col-nr">${i}</td><td><input type="text" class="f-name-input"></td><td><input type="number" class="f-amt-input" step="0.01" oninput="calculateTotal()"></td></tr>`;
+        tableBody.innerHTML += `<tr><td>${i}</td><td><input type="text" class="f-name"></td><td><input type="number" class="f-amt" step="0.01" oninput="calculateTotal()"></td></tr>`;
     }
 
     function calculateTotal() {
         let sum = 0;
-        document.querySelectorAll('.f-amt-input').forEach(i => sum += parseFloat(i.value) || 0);
+        document.querySelectorAll('.f-amt').forEach(i => sum += parseFloat(i.value) || 0);
         sum -= (parseFloat(document.getElementById('tanken').value) || 0);
         sum -= (parseFloat(document.getElementById('auszahlung').value) || 0);
         document.getElementById('total-val').textContent = sum.toFixed(2);
@@ -122,61 +72,68 @@
     const canvas = document.getElementById('sig-canvas');
     const ctx = canvas.getContext('2d');
     let drawing = false;
-    canvas.width = canvas.parentElement.clientWidth; canvas.height = 180;
-    const getPos = (e) => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX || e.touches[0].clientX) - r.left, y: (e.clientY || e.touches[0].clientY) - r.top }; };
-    canvas.addEventListener('mousedown', (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
-    canvas.addEventListener('mousemove', (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-    window.addEventListener('mouseup', () => drawing = false);
-    canvas.addEventListener('touchstart', (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
-    canvas.addEventListener('touchmove', (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    canvas.width = canvas.offsetWidth; canvas.height = 150;
+    const getPos = (e) => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX || (e.touches && e.touches[0].clientX)) - r.left, y: (e.clientY || (e.touches && e.touches[0].clientY)) - r.top }; };
+    const start = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
+    const move = (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+    canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', () => drawing = false);
+    canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', move); canvas.addEventListener('touchend', () => drawing = false);
     function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
     document.getElementById('main-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('submit-btn');
-        btn.disabled = true; btn.innerHTML = "Wird gesendet...";
+        btn.disabled = true; btn.innerHTML = "Wird erstellt...";
 
-        // استخراج مقادیر و انتقال به قالب PDF بصورت متن ثابت
-        document.getElementById('p-date').textContent = new Date(document.getElementById('current-date').value).toLocaleDateString('de-DE');
-        document.getElementById('p-name').textContent = document.getElementById('driver-name').value;
-        document.getElementById('p-plate').textContent = document.getElementById('car-plate').value;
-        document.getElementById('p-tanken').textContent = parseFloat(document.getElementById('tanken').value || 0).toFixed(2);
-        document.getElementById('p-auszahlung').textContent = parseFloat(document.getElementById('auszahlung').value || 0).toFixed(2);
-        document.getElementById('p-notes').textContent = document.getElementById('notes').value || "-";
-        document.getElementById('p-total').textContent = document.getElementById('total-val').textContent;
-        document.getElementById('p-sig').src = canvas.toDataURL();
-
-        // ساخت لیست شرکت‌ها برای PDF
-        const list = document.getElementById('p-items-list');
-        list.innerHTML = '<div style="display:flex; justify-content:space-between; font-weight:bold; border-bottom:1px solid #000; padding-bottom:5px;"><span>Firma</span><span>Betrag</span></div>';
-        
-        document.querySelectorAll('tr').forEach((row, index) => {
-            if (index === 0) return; // هدر جدول
-            const name = row.querySelector('.f-name-input')?.value;
-            const amt = row.querySelector('.f-amt-input')?.value;
-            if (parseFloat(amt) > 0) {
-                list.innerHTML += `<div class="pdf-table-row"><span>${name || 'Unbekannt'}</span><span>${parseFloat(amt).toFixed(2)} CHF</span></div>`;
+        // ۱. ساخت محتوای PDF به صورت یک رشته HTML (بدون نیاز به المان مخفی در صفحه)
+        let rowsHtml = '';
+        document.querySelectorAll('tr').forEach((tr, i) => {
+            if(i === 0) return;
+            const n = tr.querySelector('.f-name').value;
+            const a = tr.querySelector('.f-amt').value;
+            if(parseFloat(a) > 0) {
+                rowsHtml += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:5px;"><span>${n || 'Firma'}</span><span>${parseFloat(a).toFixed(2)} CHF</span></div>`;
             }
         });
 
-        const element = document.getElementById('pdf-template');
-        element.style.display = 'block';
-        
-        try {
-            await new Promise(r => setTimeout(r, 500));
-            const opt = { margin: 10, filename: 'Abrechnung.pdf', image: {type:'jpeg', quality:1}, html2canvas: {scale: 2}, jsPDF: {unit:'mm', format:'a4'} };
-            const pdfBlob = await html2pdf().from(element).set(opt).output('blob');
-            element.style.display = 'none';
+        const pdfContent = `
+            <div style="font-family: Arial; padding: 20px; color: #000;">
+                <h1 style="text-align:center; border-bottom: 2px solid #000;">Abrechnungsbeleg</h1>
+                <p><strong>Fahrer:</strong> ${document.getElementById('driver-name').value}</p>
+                <p><strong>Kennzeichen:</strong> ${document.getElementById('car-plate').value}</p>
+                <p><strong>Datum:</strong> ${new Date(document.getElementById('current-date').value).toLocaleDateString('de-DE')}</p>
+                <div style="margin: 20px 0;">${rowsHtml}</div>
+                <div style="background:#f9f9f9; padding:10px; border:1px solid #ccc;">
+                    <p>Tanken: -${parseFloat(document.getElementById('tanken').value || 0).toFixed(2)} CHF</p>
+                    <p>Auszahlung: -${parseFloat(document.getElementById('auszahlung').value || 0).toFixed(2)} CHF</p>
+                    <p>Notizen: ${document.getElementById('notes').value || '-'}</p>
+                </div>
+                <h2 style="text-align:right; border-top:2px solid #000; padding-top:10px;">Total: ${document.getElementById('total-val').textContent} CHF</h2>
+                <div style="margin-top:30px;">
+                    <p>Unterschrift:</p>
+                    <img src="${canvas.toDataURL()}" style="width:250px; border-bottom:1px solid #000;">
+                </div>
+            </div>`;
 
+        // ۲. رندر مستقیم محتوا به PDF
+        const opt = { 
+            margin: 10, 
+            filename: 'Abrechnung.pdf', 
+            html2canvas: { scale: 2, useCORS: true }, 
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+        };
+
+        try {
+            const pdfBlob = await html2pdf().from(pdfContent).set(opt).output('blob');
             const fd = new FormData();
             fd.append("access_key", "817b5739-ed89-4340-9674-57d210b081b7");
             fd.append("attachment", pdfBlob, "Abrechnung.pdf");
             fd.append("from_name", document.getElementById('driver-name').value);
 
-            const res = await fetch("https://api.web3forms.com/submit", {method: "POST", body: fd});
-            if((await res.json()).success) { alert("Erfolgreich gesendet!"); location.reload(); }
+            const res = await fetch("https://api.web3forms.com/submit", { method: "POST", body: fd });
+            if((await res.json()).success) { alert("Erfolgreich!"); location.reload(); }
             else { alert("Fehler!"); btn.disabled = false; }
-        } catch (err) { alert("Fehler!"); btn.disabled = false; }
+        } catch (err) { alert("PDF Error!"); btn.disabled = false; }
     });
 </script>
 </body>
