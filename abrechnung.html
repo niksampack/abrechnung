@@ -3,146 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abrechnung Professional</title>
+    <title>Abrechnung Professional v6.5</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
-        :root { --p: #1e3a8a; --bg: #f8fafc; }
-        body { font-family: sans-serif; background: var(--bg); padding: 15px; margin: 0; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--p); border-bottom: 2px solid #3b82f6; padding-bottom: 10px; }
-        .header-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .header-fields input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: var(--p); color: white; }
-        .f-name, .f-amt { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        .extra-box { background: #fffbeb; padding: 15px; border-radius: 10px; border: 1px solid #fde68a; margin-bottom: 15px; }
-        #total-display { background: var(--p); color: white; padding: 15px; font-size: 20px; text-align: center; border-radius: 10px; font-weight: bold; }
-        canvas { width: 100%; height: 180px; background: #fff; border: 2px dashed #ccc; border-radius: 8px; touch-action: none; margin-top: 10px; }
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        button { flex: 1; padding: 18px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; }
-        #submit-btn { background: #10b981; } #clear-btn { background: #ef4444; }
+        :root { --p: #1e3a8a; --s: #3b82f6; --bg: #f1f5f9; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); padding: 15px; margin: 0; color: #1e293b; }
+        .container { max-width: 850px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: var(--p); border-bottom: 3px solid var(--s); padding-bottom: 10px; margin-bottom: 25px; }
+        
+        .header-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; background: #f8fafc; padding: 20px; border-radius: 12px; }
+        .header-fields div { display: flex; flex-direction: column; }
+        label { font-weight: 600; font-size: 14px; margin-bottom: 5px; color: var(--p); }
+        input, textarea { padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; box-sizing: border-box; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: var(--p); color: white; text-transform: uppercase; font-size: 13px; }
+        .col-firma { width: 75%; } .col-betrag { width: 25%; }
+
+        .extra-box { background: #fffbeb; padding: 20px; border-radius: 12px; border: 1px solid #fde68a; margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        #total-box { background: linear-gradient(135deg, var(--p), var(--s)); color: white; padding: 20px; border-radius: 15px; text-align: center; font-size: 24px; font-weight: 800; margin: 25px 0; }
+        
+        canvas { border: 2px dashed #94a3b8; width: 100%; height: 180px; background: #fff; border-radius: 12px; margin-top: 10px; touch-action: none; }
+        
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 25px; }
+        button { padding: 18px; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .btn-share { background: #25d366; } .btn-share:hover { background: #128c7e; }
+        .btn-send { background: #10b981; } .btn-send:hover { background: #059669; }
+        .btn-clear { background: #ef4444; padding: 10px; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Abrechnung</h2>
-    <form id="main-form">
-        <div class="header-fields">
-            <input type="text" id="driver-name" placeholder="Fahrername" required>
-            <input type="text" id="car-plate" placeholder="Kennzeichen" required>
-            <input type="date" id="current-date" required>
-        </div>
-        <table>
-            <thead><tr><th>#</th><th>Firma</th><th>Betrag (CHF)</th></tr></thead>
-            <tbody id="company-rows"></tbody>
-        </table>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div class="extra-box"><label>Tanken (-)</label><input type="number" id="tanken" step="0.01" oninput="calculateTotal()"></div>
-            <div class="extra-box"><label>Auszahlung (-)</label><input type="number" id="auszahlung" step="0.01" oninput="calculateTotal()"></div>
-        </div>
-        <textarea id="notes" style="width:100%; height:60px; padding:10px; border-radius:8px; border:1px solid #ccc;" placeholder="Notizen..."></textarea>
-        <div id="total-display">TOTAL: <span id="total-val">0.00</span> CHF</div>
-        <label>Unterschrift:</label>
-        <canvas id="sig-canvas"></canvas>
-        <div class="btn-group">
-            <button type="button" id="clear-btn" onclick="clearSig()">Löschen</button>
-            <button type="submit" id="submit-btn">PDF Senden</button>
-        </div>
-    </form>
+    <div class="header-fields">
+        <div><label>Fahrername</label><input type="text" id="name" required></div>
+        <div><label>Autokennzeichen</label><input type="text" id="plate" required></div>
+        <div><label>Datum</label><input type="date" id="date" required></div>
+    </div>
+    
+    <table>
+        <thead><tr><th class="col-firma">Firma</th><th class="col-betrag">Betrag (CHF)</th></tr></thead>
+        <tbody id="rows"></tbody>
+    </table>
+    
+    <div class="extra-box">
+        <div><label>Tanken (-)</label><input type="number" id="tanken" placeholder="0.00" oninput="calc()"></div>
+        <div><label>Auszahlung (-)</label><input type="number" id="auszahlung" placeholder="0.00" oninput="calc()"></div>
+    </div>
+    
+    <div style="margin-top: 20px;"><label>Notizen</label><textarea id="notes" style="width:100%; height:80px;"></textarea></div>
+    
+    <div id="total-box">Total: <span id="total">0.00</span> CHF</div>
+    
+    <label>Unterschrift:</label>
+    <canvas id="canvas"></canvas>
+    <button class="btn-clear" onclick="clearCanvas()">Unterschrift löschen</button>
+    
+    <div class="btn-group">
+        <button class="btn-share" id="shareBtn">PDF مستقیم (WhatsApp/Share)</button>
+        <button class="btn-send" id="sendBtn">Als PDF per E-Mail senden</button>
+    </div>
 </div>
 
 <script>
-    document.getElementById('current-date').valueAsDate = new Date();
-    const tableBody = document.getElementById('company-rows');
-    for (let i = 1; i <= 15; i++) {
-        tableBody.innerHTML += `<tr><td>${i}</td><td><input type="text" class="f-name"></td><td><input type="number" class="f-amt" step="0.01" oninput="calculateTotal()"></td></tr>`;
+    const { jsPDF } = window.jspdf;
+    document.getElementById('date').valueAsDate = new Date();
+    
+    const tbody = document.getElementById('rows');
+    for(let i=0; i<15; i++) {
+        tbody.innerHTML += `<tr><td><input type="text" class="f-n" style="width:100%"></td><td><input type="number" class="f-a" style="width:100%" oninput="calc()"></td></tr>`;
     }
 
-    function calculateTotal() {
-        let sum = 0;
-        document.querySelectorAll('.f-amt').forEach(i => sum += parseFloat(i.value) || 0);
-        sum -= (parseFloat(document.getElementById('tanken').value) || 0);
-        sum -= (parseFloat(document.getElementById('auszahlung').value) || 0);
-        document.getElementById('total-val').textContent = sum.toFixed(2);
+    function calc() {
+        let t = 0;
+        document.querySelectorAll('.f-a').forEach(i => t += parseFloat(i.value) || 0);
+        t -= (parseFloat(document.getElementById('tanken').value) || 0);
+        t -= (parseFloat(document.getElementById('auszahlung').value) || 0);
+        document.getElementById('total').innerText = t.toFixed(2);
     }
 
-    const canvas = document.getElementById('sig-canvas');
+    const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     let drawing = false;
     canvas.width = canvas.offsetWidth; canvas.height = 180;
     ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
 
-    const getPos = (e) => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX || (e.touches && e.touches[0].clientX)) - r.left, y: (e.clientY || (e.touches && e.touches[0].clientY)) - r.top }; };
-    canvas.addEventListener('mousedown', (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
-    canvas.addEventListener('mousemove', (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    const getP = (e) => {
+        const r = canvas.getBoundingClientRect();
+        const x = (e.clientX || (e.touches && e.touches[0].clientX)) - r.left;
+        const y = (e.clientY || (e.touches && e.touches[0].clientY)) - r.top;
+        return { x, y };
+    };
+    canvas.addEventListener('mousedown', (e) => { drawing = true; ctx.beginPath(); const p = getP(e); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('mousemove', (e) => { if(!drawing) return; const p = getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
     window.addEventListener('mouseup', () => drawing = false);
-    canvas.addEventListener('touchstart', (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
-    canvas.addEventListener('touchmove', (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-    function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    canvas.addEventListener('touchstart', (e) => { drawing = true; ctx.beginPath(); const p = getP(e); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('touchmove', (e) => { if(!drawing) return; e.preventDefault(); const p = getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-    document.getElementById('main-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('submit-btn');
-        btn.disabled = true; btn.innerHTML = "Wird gesendet...";
-
-        const { jsPDF } = window.jspdf;
+    async function generatePDF() {
         const doc = new jsPDF();
+        doc.setFontSize(22); doc.setTextColor(30, 58, 138); doc.text("ABRECHNUNGSBELEG", 105, 20, {align: 'center'});
+        doc.setFontSize(12); doc.setTextColor(0);
+        doc.text(`Fahrer: ${document.getElementById('name').value}`, 20, 35);
+        doc.text(`Kennzeichen: ${document.getElementById('plate').value}`, 20, 42);
+        doc.text(`Datum: ${document.getElementById('date').value}`, 20, 49);
 
-        // ۱. عنوان و اطلاعات هدر
-        doc.setFontSize(22); doc.setTextColor(30, 58, 138); doc.text("ABRECHNUNGSBELEG", 105, 20, { align: "center" });
-        doc.setFontSize(12); doc.setTextColor(0, 0, 0);
-        doc.text(`Fahrer: ${document.getElementById('driver-name').value}`, 20, 35);
-        doc.text(`Kennzeichen: ${document.getElementById('car-plate').value}`, 20, 42);
-        doc.text(`Datum: ${new Date(document.getElementById('current-date').value).toLocaleDateString('de-DE')}`, 20, 49);
-
-        // ۲. ساخت جدول داده‌ها
-        const tableData = [];
-        document.querySelectorAll('#company-rows tr').forEach((tr) => {
-            const name = tr.querySelector('.f-name').value;
-            const amt = tr.querySelector('.f-amt').value;
-            if(parseFloat(amt) > 0) {
-                tableData.push([name || 'Diverses', `${parseFloat(amt).toFixed(2)} CHF`]);
-            }
+        const data = [];
+        document.querySelectorAll('#rows tr').forEach(tr => {
+            const n = tr.querySelector('.f-n').value;
+            const a = tr.querySelector('.f-a').value;
+            if(parseFloat(a) > 0) data.push([n || 'Firma', `${parseFloat(a).toFixed(2)} CHF`]);
         });
 
-        doc.autoTable({
-            startY: 55,
-            head: [['Firma', 'Betrag']],
-            body: tableData,
-            headStyles: { fillGray: 30, textColor: 255 },
-            theme: 'striped'
-        });
+        doc.autoTable({ startY: 55, head: [['Firma', 'Betrag']], body: data, theme: 'striped' });
+        
+        const y = doc.lastAutoTable.finalY + 10;
+        doc.text(`Tanken: -${parseFloat(document.getElementById('tanken').value || 0).toFixed(2)} CHF`, 20, y);
+        doc.text(`Auszahlung: -${parseFloat(document.getElementById('auszahlung').value || 0).toFixed(2)} CHF`, 20, y+7);
+        doc.text(`Notizen: ${document.getElementById('notes').value || '-'}`, 20, y+14);
+        doc.setFontSize(16); doc.text(`Total: ${document.getElementById('total').innerText} CHF`, 190, y+25, {align: 'right'});
+        
+        const img = canvas.toDataURL('image/png');
+        doc.addImage(img, 'PNG', 20, y+30, 60, 30);
+        return doc;
+    }
 
-        // ۳. فوتر و مبالغ منفی
-        const finalY = doc.lastAutoTable.finalY + 10;
-        doc.setFontSize(11);
-        doc.text(`Tanken: -${parseFloat(document.getElementById('tanken').value || 0).toFixed(2)} CHF`, 20, finalY);
-        doc.text(`Auszahlung: -${parseFloat(document.getElementById('auszahlung').value || 0).toFixed(2)} CHF`, 20, finalY + 7);
-        doc.text(`Notizen: ${document.getElementById('notes').value || '-'}`, 20, finalY + 14);
-
-        doc.setFontSize(16); doc.setFont(undefined, 'bold');
-        doc.text(`TOTAL: ${document.getElementById('total-val').textContent} CHF`, 190, finalY + 25, { align: "right" });
-
-        // ۴. امضا (تبدیل Canvas به عکس)
-        const sigData = canvas.toDataURL('image/png');
-        doc.setFontSize(12); doc.text("Unterschrift:", 20, finalY + 35);
-        doc.addImage(sigData, 'PNG', 20, finalY + 40, 50, 25);
-
-        // ۵. ارسال مستقیم به Web3Forms
-        const pdfBlob = doc.output('blob');
+    // دکمه ارسال به ایمیل
+    document.getElementById('sendBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('sendBtn');
+        btn.disabled = true; btn.innerText = "Wird gesendet...";
+        const doc = await generatePDF();
+        const blob = doc.output('blob');
         const fd = new FormData();
         fd.append("access_key", "817b5739-ed89-4340-9674-57d210b081b7");
-        fd.append("attachment", pdfBlob, "Abrechnung.pdf");
-        fd.append("from_name", document.getElementById('driver-name').value);
+        fd.append("attachment", blob, "Abrechnung.pdf");
+        fd.append("from_name", document.getElementById('name').value);
 
         try {
-            const res = await fetch("https://api.web3forms.com/submit", { method: "POST", body: fd });
-            if((await res.json()).success) { alert("Erfolgreich gesendet!"); location.reload(); }
-            else { alert("Fehler!"); btn.disabled = false; }
-        } catch (err) { alert("Senden fehlgeschlagen!"); btn.disabled = false; }
+            const r = await fetch("https://api.web3forms.com/submit", { method: "POST", body: fd });
+            if(r.ok) { alert("Erfolgreich an E-Mail gesendet!"); location.reload(); }
+            else { alert("Senden fehlgeschlagen!"); btn.disabled = false; }
+        } catch { alert("Error!"); btn.disabled = false; }
+    });
+
+    // دکمه اشتراک‌گذاری مستقیم
+    document.getElementById('shareBtn').addEventListener('click', async () => {
+        const doc = await generatePDF();
+        const blob = doc.output('blob');
+        const file = new File([blob], `Abrechnung_${document.getElementById('name').value}.pdf`, { type: 'application/pdf' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: 'Abrechnung PDF' });
+        } else {
+            doc.save(`Abrechnung_${document.getElementById('name').value}.pdf`);
+            alert("Share nicht unterstützt - Datei wurde heruntergeladen.");
+        }
     });
 </script>
 </body>
