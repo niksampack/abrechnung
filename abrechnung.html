@@ -31,7 +31,7 @@
             background: var(--card-bg); 
             padding: 40px; 
             border-radius: 20px; 
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); 
         }
 
         h2 { 
@@ -41,14 +41,10 @@
             font-size: 28px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 1px;
             border-bottom: 3px solid var(--secondary-color);
-            display: inline-block;
-            width: 100%;
             padding-bottom: 10px;
         }
 
-        /* هدر فرم */
         .header-fields { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
@@ -73,25 +69,16 @@
             border: 1px solid #cbd5e1; 
             border-radius: 8px; 
             box-sizing: border-box;
-            transition: border 0.3s;
         }
 
-        .header-fields input:focus {
-            outline: none;
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        /* استایل جدول */
         .table-container { overflow-x: auto; margin-bottom: 30px; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         th { background: var(--primary-color); color: white; font-weight: 600; text-transform: uppercase; font-size: 13px; }
-        tr:nth-child(even) { background-color: #f8fafc; }
         
-        .col-nr { width: 50px; text-align: center; color: #64748b; font-weight: bold; }
-        .col-firma { width: 65%; }
-        .col-betrag { width: 30%; }
+        .col-nr { width: 40px; text-align: center; color: #64748b; }
+        .col-firma { width: 75%; } 
+        .col-betrag { width: 20%; } 
 
         input[type="text"], input[type="number"] { 
             width: 100%; 
@@ -99,10 +86,8 @@
             border: 1px solid #e2e8f0; 
             border-radius: 6px; 
             box-sizing: border-box;
-            font-size: 15px;
         }
 
-        /* بخش کسر مبالغ */
         .extra-fields { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
@@ -115,10 +100,9 @@
             border-radius: 12px; 
             border: 1px solid #fde68a; 
         }
-        .extra-box label { font-weight: 700; display: block; margin-bottom: 10px; color: #92400e; font-size: 15px; }
+        .extra-box label { font-weight: 700; display: block; margin-bottom: 10px; color: #92400e; }
 
         .notes-area { margin-top: 30px; }
-        .notes-area label { font-weight: 700; display: block; margin-bottom: 10px; }
         textarea { 
             width: 100%; 
             height: 100px; 
@@ -127,10 +111,8 @@
             border-radius: 12px; 
             resize: none; 
             box-sizing: border-box;
-            font-family: inherit;
         }
 
-        /* نمایش جمع کل */
         #total-display { 
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); 
             color: white; 
@@ -140,39 +122,16 @@
             text-align: center; 
             margin: 30px 0; 
             border-radius: 15px; 
-            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
         }
 
-        /* امضا */
-        .sig-wrapper { background: #f1f5f9; padding: 15px; border-radius: 15px; margin-top: 10px; border: 2px dashed #cbd5e1; }
-        canvas { 
-            width: 100%; 
-            height: 180px; 
-            background: #fff; 
-            cursor: crosshair; 
-            border-radius: 10px;
-        }
+        .sig-wrapper { background: #f1f5f9; padding: 15px; border-radius: 15px; border: 2px dashed #cbd5e1; }
+        canvas { width: 100%; height: 180px; background: #fff; border-radius: 10px; touch-action: none; }
 
-        /* دکمه‌ها */
         .btn-group { display: flex; gap: 15px; margin-top: 30px; }
-        button { 
-            flex: 1; 
-            padding: 18px; 
-            border: none; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            font-weight: 700; 
-            color: white; 
-            transition: all 0.3s;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
+        button { flex: 1; padding: 18px; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 700; color: white; transition: 0.3s; }
         #submit-btn { background: var(--success-color); }
-        #submit-btn:hover { background: #059669; transform: translateY(-2px); }
         #clear-btn { background: var(--danger-color); }
-        #clear-btn:hover { background: #dc2626; transform: translateY(-2px); }
 
-        /* PDF Template */
         #pdf-template { display: none; padding: 40px; color: #000; }
         .pdf-header { border-bottom: 3px solid #000; padding-bottom: 15px; margin-bottom: 25px; text-align: center; }
     </style>
@@ -185,7 +144,7 @@
         <div class="header-fields">
             <div>
                 <label>Fahrername</label>
-                <input type="text" id="driver-name" placeholder="Vorname Nachname" required>
+                <input type="text" id="driver-name" placeholder="Name Nachname" required>
             </div>
             <div>
                 <label>Autokennzeichen</label>
@@ -223,7 +182,7 @@
 
         <div class="notes-area">
             <label>Notizen</label>
-            <textarea id="notes" placeholder="Zusätzliche Informationen..."></textarea>
+            <textarea id="notes" placeholder="Optionale Notizen..."></textarea>
         </div>
 
         <div id="total-display">Gesamt: <span id="total-val">0.00</span> CHF</div>
@@ -242,15 +201,15 @@
 
 <div id="pdf-template">
     <div class="pdf-header">
-        <h1 style="margin:0; font-size: 28px;">Abrechnungsbeleg</h1>
-        <p style="font-size: 16px;">Datum: <span id="p-date"></span></p>
+        <h1 style="margin:0;">Abrechnungsbeleg</h1>
+        <p>Datum: <span id="p-date"></span></p>
     </div>
-    <div style="margin-bottom: 30px; font-size: 16px;">
+    <div style="font-size: 16px;">
         <p><strong>Fahrer:</strong> <span id="p-name"></span></p>
         <p><strong>Kennzeichen:</strong> <span id="p-plate"></span></p>
     </div>
-    <div id="p-items" style="margin-bottom: 20px;"></div>
-    <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-top: 20px;">
+    <div id="p-items" style="margin: 20px 0;"></div>
+    <div style="background: #f1f5f9; padding: 15px; border-radius: 8px;">
         <p><strong>Tanken (Abzug):</strong> -<span id="p-tanken">0</span> CHF</p>
         <p><strong>Auszahlung (Abzug):</strong> -<span id="p-auszahlung">0</span> CHF</p>
         <p><strong>Notizen:</strong> <span id="p-notes"></span></p>
@@ -272,7 +231,7 @@
         tableBody.innerHTML += `
             <tr>
                 <td class="col-nr">${i}</td>
-                <td class="col-firma"><input type="text" class="firma-input" placeholder="..."></td>
+                <td class="col-firma"><input type="text" class="firma-input" placeholder="Name..."></td>
                 <td class="col-betrag"><input type="number" class="f-amt" step="0.01" placeholder="0.00" oninput="calculateTotal()"></td>
             </tr>`;
     }
@@ -280,8 +239,8 @@
     function calculateTotal() {
         let sum = 0;
         document.querySelectorAll('.f-amt').forEach(i => sum += parseFloat(i.value) || 0);
-        sum -= parseFloat(document.getElementById('tanken').value) || 0;
-        sum -= parseFloat(document.getElementById('auszahlung').value) || 0;
+        sum -= (parseFloat(document.getElementById('tanken').value) || 0);
+        sum -= (parseFloat(document.getElementById('auszahlung').value) || 0);
         document.getElementById('total-val').textContent = sum.toFixed(2);
     }
 
@@ -298,17 +257,17 @@
 
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
-        return {
-            x: (e.clientX || e.touches[0].clientX) - rect.left,
-            y: (e.clientY || e.touches[0].clientY) - rect.top
-        };
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        return { x: clientX - rect.left, y: clientY - rect.top };
     }
-    function start(e) { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); }
-    function move(e) { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineWidth = 2; ctx.lineTo(p.x, p.y); ctx.stroke(); }
-    function stop() { drawing = false; }
+    const start = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
+    const move = (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineWidth = 2; ctx.lineTo(p.x, p.y); ctx.stroke(); };
+    const stop = () => drawing = false;
 
     canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', stop);
     canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', move); canvas.addEventListener('touchend', stop);
+
     function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
     document.getElementById('main-form').addEventListener('submit', async (e) => {
@@ -316,10 +275,13 @@
         const btn = document.getElementById('submit-btn');
         btn.disabled = true; btn.innerHTML = "Wird gesendet...";
 
+        // کلید اختصاصی شما جایگذاری شد
+        const MY_ACCESS_KEY = "817b5739-ed89-4340-9674-57d210b081b7"; 
+
         const dateVal = new Date(document.getElementById('current-date').value).toLocaleDateString('de-DE');
+        document.getElementById('p-date').textContent = dateVal;
         document.getElementById('p-name').textContent = document.getElementById('driver-name').value;
         document.getElementById('p-plate').textContent = document.getElementById('car-plate').value;
-        document.getElementById('p-date').textContent = dateVal;
         document.getElementById('p-tanken').textContent = parseFloat(document.getElementById('tanken').value || 0).toFixed(2);
         document.getElementById('p-auszahlung').textContent = parseFloat(document.getElementById('auszahlung').value || 0).toFixed(2);
         document.getElementById('p-notes').textContent = document.getElementById('notes').value || "-";
@@ -344,7 +306,7 @@
             element.style.display = 'none';
 
             const fd = new FormData();
-            fd.append("access_key", "YOUR_ACCESS_KEY_HERE"); 
+            fd.append("access_key", MY_ACCESS_KEY); 
             fd.append("attachment", pdfBlob, "Abrechnung.pdf");
             fd.append("from_name", document.getElementById('driver-name').value);
 
