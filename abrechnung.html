@@ -3,99 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Abrechnung NIK</title>
+    <title>Abrechnung NIK - Professional PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
-        .container { max-width: 600px; margin: auto; border: 1px solid #ccc; padding: 20px; border-radius: 10px; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1a73e8; margin-bottom: 25px; }
         .field { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; }
-        input { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
-        #total-container { background: #e8f5e9; padding: 10px; font-size: 1.2em; font-weight: bold; text-align: center; margin-top: 20px; }
-        button { width: 100%; padding: 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 20px; }
-        button:disabled { background-color: #ccc; }
-        #status-message { margin-top: 10px; text-align: center; font-weight: bold; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #444; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        #total-box { background: #e8f0fe; color: #1967d2; padding: 15px; border-radius: 8px; text-align: center; font-size: 1.5em; font-weight: bold; margin: 20px 0; }
+        canvas { border: 2px solid #ccc; border-radius: 8px; width: 100%; height: 180px; background: #fff; cursor: crosshair; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        #submit-btn { background-color: #1a73e8; color: white; }
+        #clear-btn { background-color: #ea4335; color: white; }
+        button:hover { opacity: 0.9; }
+        button:disabled { background-color: #bdc3c7; }
+
+        /* استایل مخفی برای PDF */
+        #pdf-content { display: none; padding: 50px; color: #000; }
+        .pdf-header { border-bottom: 2px solid #1a73e8; margin-bottom: 30px; text-align: center; padding-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="main-ui">
     <h2>Abrechnung Formular</h2>
-    <form id="billing-form">
+    <form id="pro-form">
         <div class="field">
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" required>
-        </div>
-        <div class="field">
-            <label for="firma">Firma:</label>
-            <input type="text" id="firma" name="firma" required>
+            <label>Name:</label>
+            <input type="text" id="name" required>
         </div>
         <div class="field">
-            <label for="amount">Betrag (CHF):</label>
-            <input type="number" id="amount" name="amount" step="0.01" required oninput="updateTotal()">
+            <label>Firma:</label>
+            <input type="text" id="firma" required>
+        </div>
+        <div class="field">
+            <label>Betrag (CHF):</label>
+            <input type="number" id="amount" step="0.01" required oninput="calcTotal()">
         </div>
 
-        <div id="total-container">
-            TOTAL: <span id="total">0.00</span> CHF
+        <div id="total-box">TOTAL: <span id="total-display">0.00</span> CHF</div>
+
+        <div class="field">
+            <label>Unterschrift (امضا):</label>
+            <canvas id="canvas"></canvas>
+            <div class="btn-group">
+                <button type="button" id="clear-btn" onclick="clearCanvas()">Löschen</button>
+            </div>
         </div>
 
-        <p style="color: gray; font-size: 0.8em;">* Unterschrift ist für diesen Test deaktiviert.</p>
-
-        <button type="submit" id="submit-btn">Senden & PDF erstellen</button>
+        <button type="submit" id="submit-btn">Als PDF senden</button>
     </form>
-    <div id="status-message"></div>
+</div>
+
+<div id="pdf-content">
+    <div class="pdf-header">
+        <h1>NIK Abrechnungsbeleg</h1>
+        <p>Datum: <span id="p-date"></span></p>
+    </div>
+    <div style="font-size: 18px; line-height: 2;">
+        <p><strong>Name:</strong> <span id="p-name"></span></p>
+        <p><strong>Firma:</strong> <span id="p-firma"></span></p>
+        <p><strong>Gesamtbetrag:</strong> <span id="p-total"></span> CHF</p>
+    </div>
+    <div style="margin-top: 60px;">
+        <p><strong>Rechtsgültige Unterschrift:</strong></p>
+        <img id="p-img" style="width: 300px; border-bottom: 1px solid #000;">
+    </div>
 </div>
 
 <script>
-    // بروزرسانی توتال
-    function updateTotal() {
-        const amount = document.getElementById('amount').value;
-        document.getElementById('total').textContent = amount ? parseFloat(amount).toFixed(2) : "0.00";
-    }
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
 
-    // مدیریت ارسال فرم
-    document.getElementById("billing-form").addEventListener("submit", async function(event) {
-        event.preventDefault();
+    // تنظیمات بوم امضا
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#000';
 
-        const btn = document.getElementById("submit-btn");
-        const status = document.getElementById("status-message");
+    const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        return { x: (e.clientX || e.touches[0].clientX) - rect.left, y: (e.clientY || e.touches[0].clientY) - rect.top };
+    };
 
-        btn.disabled = true;
-        btn.textContent = "Wird gesendet...";
-        status.textContent = "";
+    const start = (e) => { isDrawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); };
+    const draw = (e) => { if(!isDrawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); };
+    const stop = () => isDrawing = false;
 
-        const formData = new FormData();
-        // !!! دقت کنید: کلید خود را به جای مقدار زیر قرار دهید !!!
-        formData.append("access_key", "817b5739-ed89-4340-9674-57d210b081b7");
-        
-        formData.append("Name", document.getElementById("name").value);
-        formData.append("Firma", document.getElementById("firma").value);
-        formData.append("Total_Amount", document.getElementById("total").textContent + " CHF");
-        formData.append("Subject", "Neue Abrechnung von " + document.getElementById("name").value);
+    canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); window.addEventListener('mouseup', stop);
+    canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', draw); canvas.addEventListener('touchend', stop);
+
+    function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    function calcTotal() { const v = document.getElementById('amount').value; document.getElementById('total-display').textContent = v ? parseFloat(v).toFixed(2) : "0.00"; }
+
+    document.getElementById('pro-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true; btn.textContent = "PDF wird generiert...";
+
+        // ۱. آماده‌سازی محتوای PDF
+        document.getElementById('p-name').textContent = document.getElementById('name').value;
+        document.getElementById('p-firma').textContent = document.getElementById('firma').value;
+        document.getElementById('p-total').textContent = document.getElementById('total-display').textContent;
+        document.getElementById('p-date').textContent = new Date().toLocaleString('de-DE');
+        document.getElementById('p-img').src = canvas.toDataURL('image/png');
+
+        const pdfElement = document.getElementById('pdf-content');
+        pdfElement.style.display = 'block';
+
+        const opt = {
+            margin: 15,
+            filename: `Abrechnung_${document.getElementById('name').value}.pdf`,
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 3 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
 
         try {
+            // ۲. تولید فایل PDF بصورت Blob
+            const pdfBlob = await html2pdf().set(opt).from(pdfElement).output('blob');
+            pdfElement.style.display = 'none';
+
+            // ۳. ارسال فایل به Web3Forms (مخصوص پلن Pro)
+            const formData = new FormData();
+            formData.append("access_key", "817b5739-ed89-4340-9674-57d210b081b7"); // کلید خود را اینجا بگذارید
+            formData.append("from_name", "NIK Abrechnung System");
+            formData.append("Name", document.getElementById('name').value);
+            formData.append("attachment", pdfBlob, opt.filename);
+            formData.append("subject", "Neue Abrechnung PDF erhalten");
+
             const response = await fetch("https://api.web3forms.com/submit", {
                 method: "POST",
                 body: formData
             });
 
             const result = await response.json();
-
             if (result.success) {
-                status.style.color = "green";
-                status.textContent = "Erfolgreich gesendet!";
-                alert("فرم با موفقیت ارسال شد.");
-                document.getElementById("billing-form").reset();
-                updateTotal();
+                alert("Erfolgreich! Das PDF wurde an Ihre E-Mail gesendet.");
+                location.reload();
             } else {
-                status.style.color = "red";
-                status.textContent = "Fehler: " + result.message;
+                alert("Fehler: " + result.message);
             }
-        } catch (error) {
-            status.style.color = "red";
-            status.textContent = "ارتباط برقرار نشد.";
+        } catch (err) {
+            alert("Ein Fehler ist aufgetreten.");
+            console.error(err);
         } finally {
-            btn.disabled = false;
-            btn.textContent = "Senden & PDF erstellen";
+            btn.disabled = false; btn.textContent = "Als PDF senden";
         }
     });
 </script>
