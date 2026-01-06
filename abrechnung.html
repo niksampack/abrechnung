@@ -104,21 +104,20 @@
     const btn = document.getElementById("sendBtn");
     const status = document.getElementById("status");
     btn.disabled = true;
-    status.textContent = "Wird gesendet... Bitte warten";
+    status.textContent = "Wird gesendet...";
 
     try {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF('p', 'mm', 'a4');
       
-      // ۱. بهینه‌سازی تصویر برای عبور از سقف متغیرها
-      const canvasImg = await html2canvas(document.getElementById("pdf-content"), { scale: 1.2 });
-      const imgData = canvasImg.toDataURL("image/jpeg", 0.6);
+      // کاهش کیفیت برای عبور از سقف متغیرهای متنی
+      const canvasImg = await html2canvas(document.getElementById("pdf-content"), { scale: 1 });
+      const imgData = canvasImg.toDataURL("image/jpeg", 0.5);
       pdf.addImage(imgData, 'JPEG', 5, 5, 200, (canvasImg.height * 200) / canvasImg.width);
       
-      // ۲. استخراج Base64 خام (بدون پیشوند) برای بخش Variable Attachment
+      // استخراج Base64 خام بدون پیشوند برای بخش Variable Attachment
       const pdfBase64 = pdf.output("datauristring").split(',')[1];
 
-      // ۳. ارسال مستقیم - متغیر content به اتچمنت وصل می‌شود
       await emailjs.send("service_x5f1og9", "template_gor1sa6", {
         fahrer: document.getElementById("fahrer").value || "Driver",
         datum: document.getElementById("datum").value,
@@ -129,7 +128,7 @@
       alert("Erfolgreich gesendet! ✅");
       status.textContent = "Fertig! ✅";
     } catch (e) {
-      alert("Fehler: " + (e.text || e.message));
+      alert("Error: " + (e.text || e.message));
       status.textContent = "Fehlgeschlagen";
     } finally { btn.disabled = false; }
   }
