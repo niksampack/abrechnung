@@ -11,21 +11,18 @@
       --accent: #dc3545;
       --brand-green: #05B084;
       --bg: #f4f7f6;
-      --card-radius: 15px;
     }
     body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #2c3e50; }
     
-    /* وسط‌چین کردن Abrechnung */
-    .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #eee; margin-bottom: 20px; }
-    .header h1 { font-family: 'Times New Roman', serif; font-style: italic; letter-spacing: 5px; text-transform: uppercase; margin: 0; color: var(--primary); font-size: 32px; width: 100%; }
+    .header { text-align: center; padding: 25px 0; border-bottom: 2px solid #edf2f7; margin-bottom: 20px; background: white; border-radius: 15px; }
+    .header h1 { font-family: 'Times New Roman', serif; font-style: italic; letter-spacing: 5px; text-transform: uppercase; margin: 0; color: var(--primary); font-size: 32px; }
 
-    .card { background: #fff; border-radius: var(--card-radius); padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .card { background: #fff; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     
     label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 5px; display: block; }
-    input { width: 100%; padding: 12px; border: 1px solid #edf2f7; border-radius: 10px; font-size: 16px; box-sizing: border-box; background: #f8fafc; }
+    input { width: 100%; padding: 12px; border: 1px solid #edf2f7; border-radius: 10px; font-size: 16px; box-sizing: border-box; background: #f8fafc; color: var(--primary); font-weight: 500; }
     
-    /* هایلایت سطرها */
-    .row { display: grid; grid-template-columns: 30px 1fr 100px; gap: 10px; padding: 10px; border-radius: 8px; align-items: center; margin-bottom: 5px; }
+    .row { display: grid; grid-template-columns: 30px 1fr 120px; gap: 10px; padding: 10px; border-radius: 8px; align-items: center; margin-bottom: 5px; }
     .row:nth-child(even) { background-color: #f9fbfb; }
     .row span { font-size: 12px; color: #cbd5e0; font-weight: bold; }
 
@@ -33,17 +30,16 @@
     .negative-input { color: var(--accent) !important; font-weight: bold !important; border-color: #ffcfcf !important; }
 
     .total-card { background: var(--brand-green); color: white; text-align: center; }
-    #total { background: transparent; border: none; color: white; font-size: 32px; font-weight: 800; text-align: center; }
+    #total { background: transparent; border: none; color: white; font-size: 32px; font-weight: 800; text-align: center; pointer-events: none; }
 
-    canvas { width: 100%; height: 160px; border: 2px dashed #e2e8f0; border-radius: var(--card-radius); background: #fff; touch-action: none; cursor: crosshair; }
+    canvas { width: 100%; height: 160px; border: 2px dashed #e2e8f0; border-radius: 15px; background: #fff; cursor: crosshair; touch-action: none; }
     
-    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-    .btn-send { grid-column: span 2; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
-    .btn-whatsapp { background: #25D366; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
-    .btn-share { background: #6c757d; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
-    .btn-clear { background: #fff; color: var(--accent); border: 1px solid #fee2e2; padding: 8px; border-radius: 10px; width: 100%; margin-top: 10px; font-size: 11px; }
+    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+    .btn-main { grid-column: span 2; padding: 22px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(26,42,108,0.2); }
+    .btn-share { grid-column: span 2; background: #6c757d; color: white; border: none; padding: 18px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .btn-clear { background: #fff; color: var(--accent); border: 1px solid #fee2e2; padding: 10px; border-radius: 10px; width: 100%; margin-top: 10px; font-size: 11px; cursor: pointer; }
     
-    #result { text-align: center; font-weight: bold; padding: 15px; }
+    #result { text-align: center; font-weight: bold; padding: 15px; color: var(--brand-green); }
   </style>
 </head>
 <body>
@@ -54,25 +50,25 @@
 
 <div id="main-content">
   <div class="card">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
       <div><label>Datum</label><input id="datum" type="date"></div>
       <div><label>Kennzeichen</label><input id="kennzeichen" type="text" placeholder="SO..."></div>
-      <div style="grid-column: span 2;"><label>Fahrer Name</label><input id="fahrer" type="text" placeholder="Name"></div>
+      <div style="grid-column: span 2;"><label>Fahrer Name</label><input id="fahrer" type="text" placeholder="Vorname Nachname"></div>
     </div>
   </div>
 
   <div class="card">
-    <div style="display: grid; grid-template-columns: 30px 1fr 100px; padding: 0 10px 10px 10px;">
+    <div style="display: grid; grid-template-columns: 30px 1fr 120px; padding: 0 10px 10px 10px; border-bottom: 1px solid #eee; margin-bottom: 10px;">
       <span></span><label>Kunde / Firma</label><label style="text-align: right;">Betrag (CHF)</label>
     </div>
     <div id="zeilen"></div>
   </div>
 
   <div class="card">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
       <div><label>Summe</label><input id="sumIncome" readonly value="0.00"></div>
-      <div><label class="negative-label">Tanken</label><input id="tanken" class="negative-input" type="number" step="0.05" oninput="recalc()"></div>
-      <div style="grid-column: span 2;"><label class="negative-label">Auszahlung</label><input id="auszahlung" class="negative-input" type="number" step="0.05" oninput="recalc()"></div>
+      <div><label class="negative-label">Tanken</label><input id="tanken" class="negative-input" type="number" step="0.05" placeholder="0.00" oninput="recalc()"></div>
+      <div style="grid-column: span 2;"><label class="negative-label">Auszahlung</label><input id="auszahlung" class="negative-input" type="number" step="0.05" placeholder="0.00" oninput="recalc()"></div>
     </div>
   </div>
 
@@ -84,23 +80,22 @@
   <div class="card">
     <label>Unterschrift</label>
     <canvas id="signature"></canvas>
-    <button type="button" class="btn-clear" onclick="clearSign()">LÖSCHEN</button>
+    <button type="button" class="btn-clear" onclick="clearSign()">UNTERSCHRIFT LÖSCHEN</button>
   </div>
 
   <div class="btn-group">
-    <button class="btn-send" onclick="submitData()" id="sendBtn">PER EMAIL SENDEN</button>
-    <button class="btn-whatsapp" onclick="shareWhatsApp()">WHATSAPP</button>
-    <button class="btn-share" onclick="shareNative()">TEILEN</button>
+    <button class="btn-main" onclick="submitData(true)" id="sendBtn">PER EMAIL SENDEN</button>
+    <button class="btn-share" onclick="sharePDF()">📄 PDF ERZEUGEN & TEILEN</button>
   </div>
 </div>
 
 <p id="result"></p>
 
 <script>
-  // تولید ردیف‌ها
+  // ایجاد ردیف‌ها
   const zeilen = document.getElementById("zeilen");
   for(let i=1; i<=15; i++) {
-    zeilen.innerHTML += `<div class="row"><span>${i}</span><input id="c_${i}" placeholder="Firma"><input id="a_${i}" type="number" step="0.05" placeholder="0.00" oninput="recalc()"></div>`;
+    zeilen.innerHTML += `<div class="row"><span>${i}</span><input id="c_${i}" placeholder="Firma..."><input id="a_${i}" type="number" step="0.05" placeholder="0.00" oninput="recalc()"></div>`;
   }
   document.getElementById('datum').valueAsDate = new Date();
 
@@ -113,41 +108,121 @@
     document.getElementById("total").value = (sum - t - a).toFixed(2);
   }
 
-  // امضا با پشتیبانی کامل دسکتاپ و موبایل
+  // سیستم امضا (اصلاح شده برای دسکتاپ و موبایل)
   const canvas = document.getElementById("signature");
   const ctx = canvas.getContext("2d");
   canvas.width = canvas.offsetWidth; canvas.height = 160;
   ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.strokeStyle = "#1a2a6c";
   
   let drawing = false;
-  const getPos = (e) => {
+  function getPos(e) {
     const rect = canvas.getBoundingClientRect();
-    const cx = e.touches ? e.touches[0].clientX : e.clientX;
-    const cy = e.touches ? e.touches[0].clientY : e.clientY;
-    return { x: cx - rect.left, y: cy - rect.top };
-  };
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  }
 
-  canvas.onmousedown = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
-  canvas.onmousemove = (e) => { if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); } };
-  window.onmouseup = () => drawing = false;
+  canvas.addEventListener("mousedown", (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
+  canvas.addEventListener("mousemove", (e) => { if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); } });
+  window.addEventListener("mouseup", () => drawing = false);
 
-  canvas.ontouchstart = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); };
-  canvas.ontouchmove = (e) => { if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); } };
-  canvas.ontouchend = () => drawing = false;
+  canvas.addEventListener("touchstart", (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); }, {passive: false});
+  canvas.addEventListener("touchmove", (e) => { if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); } }, {passive: false});
+  canvas.addEventListener("touchend", () => drawing = false);
 
   function clearSign() { ctx.clearRect(0,0,canvas.width,canvas.height); }
 
-  // توابع اشتراک‌گذاری
-  function shareWhatsApp() {
-    const text = `Abrechnung NIK\nFahrer: ${document.getElementById('fahrer').value}\nTotal: ${document.getElementById('total').value} CHF`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+  async function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+    
+    // هدر سبز مشابه عکس
+    pdf.setFillColor(5, 176, 132); 
+    pdf.rect(0, 0, 210, 45, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(28);
+    pdf.text("ABRECHNUNG", 105, 28, {align: 'center'});
+    pdf.setFontSize(10);
+    pdf.text("NIK TRANSPORT LOGISTIC", 105, 36, {align: 'center'});
+
+    // مشخصات
+    pdf.setTextColor(44, 62, 80);
+    pdf.setFontSize(12);
+    pdf.setFont(undefined, 'bold');
+    pdf.text("FAHRER DETAILS", 15, 60);
+    pdf.setDrawColor(200, 200, 200);
+    pdf.line(15, 63, 195, 63);
+    
+    pdf.setFont(undefined, 'normal');
+    pdf.text(`Name: ${document.getElementById("fahrer").value}`, 15, 72);
+    pdf.text(`Kennzeichen: ${document.getElementById("kennzeichen").value}`, 15, 80);
+    pdf.text(`Datum: ${document.getElementById("datum").value}`, 15, 88);
+
+    // جدول با هایلایت مشابه عکس
+    pdf.setFillColor(5, 176, 132);
+    pdf.rect(15, 98, 180, 10, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFont(undefined, 'bold');
+    pdf.text("KUNDE / FIRMA", 20, 105);
+    pdf.text("BETRAG (CHF)", 150, 105);
+
+    pdf.setTextColor(44, 62, 80);
+    pdf.setFont(undefined, 'normal');
+    let y = 116;
+    let count = 0;
+    for(let i=1; i<=15; i++) {
+      const f = document.getElementById("c_"+i).value;
+      const b = document.getElementById("a_"+i).value;
+      if(f || b > 0) {
+        if(count % 2 === 0) {
+          pdf.setFillColor(245, 247, 246);
+          pdf.rect(15, y-6, 180, 8, 'F');
+        }
+        pdf.text(f || "---", 20, y);
+        pdf.text(`${Number(b).toFixed(2)} CHF`, 150, y);
+        y += 8;
+        count++;
+      }
+    }
+
+    // خط پایان و محاسبات
+    pdf.setDrawColor(5, 176, 132);
+    pdf.line(15, y, 195, y);
+    y += 12;
+    pdf.setFontSize(11);
+    pdf.text(`Summe: ${document.getElementById("sumIncome").value} CHF`, 130, y);
+    pdf.setTextColor(220, 53, 69);
+    pdf.text(`Tanken: ${document.getElementById("tanken").value || '0.00'} CHF`, 130, y+8);
+    pdf.text(`Auszahlung: ${document.getElementById("auszahlung").value || '0.00'} CHF`, 130, y+16);
+    
+    y += 35;
+    pdf.setFontSize(18);
+    pdf.setFont(undefined, 'bold');
+    pdf.setTextColor(5, 176, 132);
+    pdf.text(`NETTO TOTAL: ${document.getElementById("total").value} CHF`, 15, y);
+
+    // امضا
+    const sigData = canvas.toDataURL("image/png");
+    pdf.setFillColor(255, 255, 255);
+    pdf.rect(15, y+5, 60, 30, 'F');
+    pdf.addImage(sigData, 'PNG', 15, y+5, 60, 30);
+    
+    return pdf;
   }
 
-  async function shareNative() {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: 'Abrechnung', text: `NIK Abrechnung - Total: ${document.getElementById('total').value} CHF`, url: window.location.href });
-      } catch (err) { console.log(err); }
+  async function sharePDF() {
+    const pdf = await generatePDF();
+    const pdfBlob = pdf.output('blob');
+    const file = new File([pdfBlob], "Abrechnung.pdf", { type: "application/pdf" });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: 'NIK Abrechnung',
+        text: 'Hier ist die aktuelle Abrechnung.'
+      });
+    } else {
+      pdf.save("Abrechnung.pdf");
     }
   }
 
@@ -157,65 +232,7 @@
     document.getElementById("result").innerHTML = "Wird gesendet...";
 
     try {
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF();
-      
-      // دیزاین PDF با نوار سبز و وسط‌چین
-      pdf.setFillColor(5, 176, 132); 
-      pdf.rect(0, 0, 210, 40, 'F');
-      pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(26);
-      pdf.text("ABRECHNUNG", 105, 25, {align: 'center'});
-
-      pdf.setTextColor(44, 62, 80);
-      pdf.setFontSize(12);
-      pdf.text(`Fahrer: ${document.getElementById("fahrer").value}`, 15, 55);
-      pdf.text(`Auto: ${document.getElementById("kennzeichen").value}`, 15, 62);
-      pdf.text(`Datum: ${document.getElementById("datum").value}`, 15, 69);
-
-      // جدول با هایلایت سطرها
-      pdf.setFillColor(5, 176, 132);
-      pdf.rect(15, 80, 180, 10, 'F');
-      pdf.setTextColor(255, 255, 255);
-      pdf.text("KUNDE / FIRMA", 20, 87);
-      pdf.text("BETRAG (CHF)", 150, 87);
-
-      pdf.setTextColor(44, 62, 80);
-      let y = 100;
-      for(let i=1; i<=15; i++) {
-        const f = document.getElementById("c_"+i).value;
-        const b = document.getElementById("a_"+i).value;
-        if(f || b > 0) {
-          // افزودن هایلایت یکی‌درمیان
-          if(i % 2 === 0) {
-            pdf.setFillColor(245, 247, 246);
-            pdf.rect(15, y-5, 180, 8, 'F');
-          }
-          pdf.text(f || "---", 20, y);
-          pdf.text(`${b || '0.00'} CHF`, 150, y);
-          y += 8;
-        }
-      }
-
-      y += 10;
-      pdf.setDrawColor(200, 200, 200);
-      pdf.line(15, y, 195, y);
-      y += 10;
-      pdf.text(`Summe: ${document.getElementById("sumIncome").value} CHF`, 130, y);
-      pdf.setTextColor(220, 53, 69);
-      pdf.text(`Tanken: ${document.getElementById("tanken").value || '0.00'} CHF`, 130, y+7);
-      pdf.text(`Auszahlung: ${document.getElementById("auszahlung").value || '0.00'} CHF`, 130, y+14);
-      
-      y += 30;
-      pdf.setFontSize(18);
-      pdf.setTextColor(5, 176, 132);
-      pdf.text(`NETTO TOTAL: ${document.getElementById("total").value} CHF`, 15, y);
-
-      const sigData = canvas.toDataURL("image/png");
-      pdf.setFillColor(255, 255, 255);
-      pdf.rect(15, y+5, 60, 30, 'F');
-      pdf.addImage(sigData, 'PNG', 15, y+5, 60, 30);
-
+      const pdf = await generatePDF();
       const pdfBlob = pdf.output('blob');
       const formData = new FormData();
       formData.append("access_key", "817b5739-ed89-4340-9674-57d210b081b7");
@@ -223,8 +240,8 @@
 
       const resp = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: formData });
       if (resp.ok) {
-        document.getElementById("result").innerHTML = "Erfolgreich gesendet! ✅";
-        setTimeout(() => location.reload(), 2000);
+        document.getElementById("result").innerHTML = "Erfolgreich per Email gesendet! ✅";
+        setTimeout(() => location.reload(), 2500);
       } else {
         document.getElementById("result").innerHTML = "Senden fehlgeschlagen.";
         btn.disabled = false;
