@@ -137,38 +137,37 @@
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF();
       
-      // طراحی حرفه‌ای PDF خروجی
       // نوار سبز بالا
       pdf.setFillColor(5, 176, 132); // #05B084
       pdf.rect(0, 0, 210, 40, 'F');
-      
       pdf.setTextColor(255, 255, 255);
       pdf.setFontSize(24);
       pdf.text("ABRECHNUNG", 15, 25);
-      pdf.setFontSize(10);
-      pdf.text("NIK TRANSPORT LOGISTIC", 15, 32);
 
-      // بخش مشخصات
+      // مشخصات راننده
       pdf.setTextColor(44, 62, 80);
-      pdf.setFontSize(14);
-      pdf.text("FAHRER DETAILS", 15, 55);
-      pdf.setDrawColor(240, 242, 245);
-      pdf.line(15, 58, 195, 58);
-
-      pdf.setFontSize(11);
-      pdf.text(`Name: ${document.getElementById("fahrer").value}`, 15, 68);
-      pdf.text(`Kennzeichen: ${document.getElementById("kennzeichen").value}`, 15, 76);
-      pdf.text(`Datum: ${document.getElementById("datum").value}`, 15, 84);
-
-      // جدول شرکت‌ها
-      pdf.setFillColor(248, 250, 252);
-      pdf.rect(15, 95, 180, 8, 'F');
+      pdf.setFontSize(13);
       pdf.setFont(undefined, 'bold');
-      pdf.text("KUNDE / FIRMA", 20, 100);
-      pdf.text("BETRAG (CHF)", 150, 100);
+      pdf.text("FAHRER DETAILS", 15, 50);
+      pdf.setDrawColor(230, 230, 230);
+      pdf.line(15, 53, 195, 53);
       pdf.setFont(undefined, 'normal');
+      pdf.setFontSize(11);
+      pdf.text(`Name: ${document.getElementById("fahrer").value}`, 15, 62);
+      pdf.text(`Kennzeichen: ${document.getElementById("kennzeichen").value}`, 15, 69);
+      pdf.text(`Datum: ${document.getElementById("datum").value}`, 15, 76);
 
-      let y = 110;
+      // نوار سبز مشتری/مبلغ
+      pdf.setFillColor(5, 176, 132);
+      pdf.rect(15, 85, 180, 8, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFont(undefined, 'bold');
+      pdf.text("KUNDE / FIRMA", 20, 90.5);
+      pdf.text("BETRAG (CHF)", 150, 90.5);
+      pdf.setFont(undefined, 'normal');
+      pdf.setTextColor(44, 62, 80);
+
+      let y = 100;
       for(let i=1; i<=15; i++) {
         const f = document.getElementById("c_"+i).value;
         const b = document.getElementById("a_"+i).value;
@@ -179,18 +178,27 @@
         }
       }
 
-      // بخش نهایی
-      y += 10;
+      // بخش محاسبات پایانی
+      y += 5;
       pdf.setDrawColor(5, 176, 132);
-      pdf.setLineWidth(0.5);
       pdf.line(15, y, 195, y);
       y += 10;
-      pdf.setFontSize(14);
+      pdf.setFontSize(10);
+      pdf.text(`Summe: ${document.getElementById("sumIncome").value} CHF`, 130, y);
+      pdf.text(`Tanken: ${document.getElementById("tanken").value} CHF`, 130, y+7);
+      pdf.text(`Auszahlung: ${document.getElementById("auszahlung").value} CHF`, 130, y+14);
+      
+      y += 25;
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.setTextColor(5, 176, 132);
       pdf.text(`NETTO TOTAL: ${document.getElementById("total").value} CHF`, 15, y);
 
-      // امضا
-      const sigData = canvas.toDataURL("image/jpeg", 0.5);
-      pdf.addImage(sigData, 'JPEG', 15, y + 10, 60, 30);
+      // رفع سیاهی امضا (پس‌زمینه سفید)
+      const sigData = canvas.toDataURL("image/png");
+      pdf.setFillColor(255, 255, 255);
+      pdf.rect(15, y+5, 60, 30, 'F');
+      pdf.addImage(sigData, 'PNG', 15, y+5, 60, 30);
 
       const pdfBlob = pdf.output('blob');
       const formData = new FormData(form);
@@ -198,7 +206,7 @@
 
       const resp = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: formData });
       if (resp.ok) {
-        result.innerHTML = "Gesendet! ✅";
+        result.innerHTML = "Erfolgreich gesendet! ✅";
         form.reset(); clearSign();
         document.getElementById('datum').valueAsDate = new Date();
       } else { result.innerHTML = "Fehler!"; }
