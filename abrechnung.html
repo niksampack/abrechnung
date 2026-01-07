@@ -1,1 +1,213 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>NIK Transport Abrechnung</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #007bff;
+      --success: #28a745;
+      --brand-green: #05B084;
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --text: #333;
+    }
+    body { font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; background: var(--bg); color: var(--text); padding: 15px; }
+    .header { text-align: center; margin-bottom: 20px; }
+    .header h1 { margin: 0; color: var(--primary); font-size: 24px; }
+    .card { background: var(--card-bg); border-radius: 15px; padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eee; }
+    .card-title { font-weight: bold; margin-bottom: 15px; display: block; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px; }
+    label { font-size: 12px; font-weight: 600; color: #888; margin-bottom: 5px; display: block; text-transform: uppercase; }
+    input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; background: #fafafa; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .full-width { grid-column: span 2; }
+    .row { display: grid; grid-template-columns: 30px 1fr 90px; gap: 10px; margin-bottom: 12px; align-items: center; }
+    .row span { font-weight: bold; color: #ccc; }
+    .total-section { background: #e9f7ef; border: 2px solid var(--brand-green); text-align: center; }
+    #total { background: transparent; border: none; font-size: 24px; font-weight: 800; color: var(--brand-green); text-align: center; }
+    canvas { width: 100%; height: 160px; border: 2px dashed #ccc; border-radius: 12px; background: #fff; touch-action: none; margin-top: 10px; }
+    .btn-send { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
+    .btn-clear { background: #f8d7da; color: #721c24; border: none; padding: 10px; border-radius: 8px; width: 100%; margin-top: 10px; font-weight: 600; cursor: pointer; }
+    #result { text-align: center; margin-top: 15px; font-weight: bold; }
+  </style>
+</head>
+<body>
 
+<div class="header">
+  <h1>NIK Transport</h1>
+  <p>Digitale Abrechnung</p>
+</div>
+
+<div id="main-container">
+  <div class="card">
+    <span class="card-title">Stammdaten</span>
+    <div class="grid">
+      <div><label>Datum</label><input id="datum" type="date"></div>
+      <div><label>Auto</label><input id="kennzeichen" type="text" placeholder="SO..."></div>
+      <div class="full-width"><label>Fahrer Name</label><input id="fahrer" type="text" required placeholder="Name"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="card-title">Einnahmen</span>
+    <div id="zeilen"></div>
+  </div>
+
+  <div class="card">
+    <span class="card-title">Abzüge</span>
+    <div class="grid">
+      <div><label>Summe CHF</label><input id="sumIncome" readonly value="0.00"></div>
+      <div><label>Tanken</label><input id="tanken" type="number" step="0.05" value="0" oninput="recalc()"></div>
+      <div class="full-width"><label>Auszahlung</label><input id="auszahlung" type="number" step="0.05" value="0" oninput="recalc()"></div>
+    </div>
+  </div>
+
+  <div class="card total-section">
+    <label style="color: var(--brand-green);">NETTO TOTAL (CHF)</label>
+    <input id="total" readonly value="0.00">
+  </div>
+
+  <div class="card">
+    <span class="card-title">Unterschrift</span>
+    <canvas id="signature"></canvas>
+    <button type="button" class="btn-clear" onclick="clearSign()">Löschen</button>
+  </div>
+
+  <button class="btn-send" onclick="submitAbrechnung()" id="sendBtn">Senden</button>
+</div>
+
+<p id="result"></p>
+
+<script>
+  const zeilen = document.getElementById("zeilen");
+  for(let i=1; i<=15; i++) {
+    zeilen.innerHTML += `<div class="row"><span>${i}</span><input id="c_${i}" placeholder="Firma"><input id="a_${i}" type="number" step="0.05" value="0" oninput="recalc()"></div>`;
+  }
+  document.getElementById('datum').valueAsDate = new Date();
+
+  function recalc() {
+    let sum = 0;
+    for(let i=1; i<=15; i++) sum += Number(document.getElementById(`a_${i}`).value || 0);
+    document.getElementById("sumIncome").value = sum.toFixed(2);
+    let t = Number(document.getElementById("tanken").value || 0);
+    let a = Number(document.getElementById("auszahlung").value || 0);
+    document.getElementById("total").value = (sum - t - a).toFixed(2);
+  }
+
+  const canvas = document.getElementById("signature");
+  const ctx = canvas.getContext("2d");
+  canvas.width = canvas.offsetWidth; canvas.height = 160;
+  ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.strokeStyle = "#000";
+  let drawing = false;
+  const getPos = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: cx - rect.left, y: cy - rect.top };
+  };
+  canvas.addEventListener("touchstart", (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); if(e.target===canvas) e.preventDefault(); }, {passive: false});
+  canvas.addEventListener("touchmove", (e) => { if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); } }, {passive: false});
+  window.addEventListener("touchend", () => drawing = false);
+  function clearSign() { ctx.clearRect(0,0,canvas.width,canvas.height); }
+
+  async function submitAbrechnung() {
+    const btn = document.getElementById("sendBtn");
+    const result = document.getElementById("result");
+    btn.disabled = true;
+    result.innerHTML = "Wird gesendet...";
+
+    try {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+      
+      // دیزاین PDF
+      pdf.setFillColor(5, 176, 132); // #05B084
+      pdf.rect(0, 0, 210, 40, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(24);
+      pdf.text("ABRECHNUNG", 15, 25);
+
+      pdf.setTextColor(44, 62, 80);
+      pdf.setFontSize(13);
+      pdf.setFont(undefined, 'bold');
+      pdf.text("FAHRER DETAILS", 15, 50);
+      pdf.line(15, 53, 195, 53);
+      pdf.setFont(undefined, 'normal');
+      pdf.setFontSize(11);
+      pdf.text(`Name: ${document.getElementById("fahrer").value}`, 15, 62);
+      pdf.text(`Kennzeichen: ${document.getElementById("kennzeichen").value}`, 15, 69);
+      pdf.text(`Datum: ${document.getElementById("datum").value}`, 15, 76);
+
+      // جدول با نوار سبز
+      pdf.setFillColor(5, 176, 132);
+      pdf.rect(15, 85, 180, 8, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFont(undefined, 'bold');
+      pdf.text("KUNDE / FIRMA", 20, 90.5);
+      pdf.text("BETRAG (CHF)", 150, 90.5);
+      pdf.setFont(undefined, 'normal');
+      pdf.setTextColor(44, 62, 80);
+
+      let y = 100;
+      for(let i=1; i<=15; i++) {
+        const f = document.getElementById("c_"+i).value;
+        const b = document.getElementById("a_"+i).value;
+        if(f || b > 0) {
+          pdf.text(f || "---", 20, y);
+          pdf.text(`${b} CHF`, 150, y);
+          y += 8;
+        }
+      }
+
+      y += 5;
+      pdf.setDrawColor(5, 176, 132);
+      pdf.line(15, y, 195, y);
+      y += 10;
+      pdf.text(`Summe: ${document.getElementById("sumIncome").value} CHF`, 130, y);
+      pdf.text(`Tanken: ${document.getElementById("tanken").value} CHF`, 130, y+7);
+      pdf.text(`Auszahlung: ${document.getElementById("auszahlung").value} CHF`, 130, y+14);
+      
+      y += 25;
+      pdf.setFontSize(16);
+      pdf.setFont(undefined, 'bold');
+      pdf.setTextColor(5, 176, 132);
+      pdf.text(`NETTO TOTAL: ${document.getElementById("total").value} CHF`, 15, y);
+
+      const sigData = canvas.toDataURL("image/png");
+      pdf.setFillColor(255, 255, 255);
+      pdf.rect(15, y+5, 60, 30, 'F');
+      pdf.addImage(sigData, 'PNG', 15, y+5, 60, 30);
+
+      const pdfBlob = pdf.output('blob');
+      
+      // ساخت FormData دستی برای جلوگیری از ارسال فیلدهای اضافه
+      const formData = new FormData();
+      formData.append("access_key", "817b5739-ed89-4340-9674-57d210b081b7");
+      formData.append("from_name", "Abrechnung System");
+      formData.append("subject", "Neue Abrechnung PDF");
+      formData.append("attachment", pdfBlob, "Abrechnung.pdf");
+      // برای اینکه متن اضافه نیاید، هیچ فیلد دیگری به formData اضافه نمی‌کنیم
+
+      const resp = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: formData });
+      if (resp.ok) {
+        result.innerHTML = "Erfolgreich gesendet! ✅";
+        // پاک کردن فرم
+        document.getElementById("fahrer").value = "";
+        document.getElementById("kennzeichen").value = "";
+        document.getElementById("tanken").value = "0";
+        document.getElementById("auszahlung").value = "0";
+        for(let i=1; i<=15; i++) {
+            document.getElementById("c_"+i).value = "";
+            document.getElementById("a_"+i).value = "0";
+        }
+        clearSign();
+        recalc();
+      } else { result.innerHTML = "Fehler!"; }
+    } catch (err) { result.innerHTML = "Verbindungsfehler!"; }
+    finally { btn.disabled = false; }
+  }
+</script>
+</body>
+</html>
