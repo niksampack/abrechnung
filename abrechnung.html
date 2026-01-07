@@ -3,43 +3,47 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Abrechnung PRO</title>
+  <title>Abrechnung NIK PRO</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
       --primary: #1a2a6c;
-      --accent: #dc3545; /* قرمز برای بخش‌های منفی */
+      --accent: #dc3545;
       --brand-green: #05B084;
       --bg: #f4f7f6;
-      --card-radius: 20px;
+      --card-radius: 15px;
     }
     body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: #2c3e50; }
     
-    .header { text-align: center; padding: 20px 0; }
-    .header h1 { font-family: 'Times New Roman', serif; font-style: italic; letter-spacing: 4px; text-transform: uppercase; margin: 0; color: var(--primary); font-size: 28px; }
+    /* وسط‌چین کردن Abrechnung */
+    .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #eee; margin-bottom: 20px; }
+    .header h1 { font-family: 'Times New Roman', serif; font-style: italic; letter-spacing: 5px; text-transform: uppercase; margin: 0; color: var(--primary); font-size: 32px; width: 100%; }
 
-    .card { background: #fff; border-radius: var(--card-radius); padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: none; }
+    .card { background: #fff; border-radius: var(--card-radius); padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     
     label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 5px; display: block; }
-    input { width: 100%; padding: 12px; border: 1px solid #edf2f7; border-radius: 12px; font-size: 16px; box-sizing: border-box; background: #f8fafc; }
+    input { width: 100%; padding: 12px; border: 1px solid #edf2f7; border-radius: 10px; font-size: 16px; box-sizing: border-box; background: #f8fafc; }
     
-    /* هایلایت ردیف‌ها */
-    .row { display: grid; grid-template-columns: 30px 1fr 90px; gap: 10px; padding: 8px; border-radius: 8px; align-items: center; }
+    /* هایلایت سطرها */
+    .row { display: grid; grid-template-columns: 30px 1fr 100px; gap: 10px; padding: 10px; border-radius: 8px; align-items: center; margin-bottom: 5px; }
     .row:nth-child(even) { background-color: #f9fbfb; }
     .row span { font-size: 12px; color: #cbd5e0; font-weight: bold; }
 
-    /* استایل قرمز برای Tanken و Auszahlung */
     .negative-label { color: var(--accent) !important; }
     .negative-input { color: var(--accent) !important; font-weight: bold !important; border-color: #ffcfcf !important; }
 
     .total-card { background: var(--brand-green); color: white; text-align: center; }
-    .total-card label { color: rgba(255,255,255,0.8); }
     #total { background: transparent; border: none; color: white; font-size: 32px; font-weight: 800; text-align: center; }
 
     canvas { width: 100%; height: 160px; border: 2px dashed #e2e8f0; border-radius: var(--card-radius); background: #fff; touch-action: none; cursor: crosshair; }
     
-    .btn-send { width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: var(--card-radius); font-size: 18px; font-weight: bold; cursor: pointer; }
-    .btn-clear { background: #fff; color: var(--accent); border: 1px solid #fee2e2; padding: 8px; border-radius: 10px; width: 100%; margin-top: 10px; font-size: 11px; font-weight: bold; }
+    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+    .btn-send { grid-column: span 2; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; }
+    .btn-whatsapp { background: #25D366; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
+    .btn-share { background: #6c757d; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
+    .btn-clear { background: #fff; color: var(--accent); border: 1px solid #fee2e2; padding: 8px; border-radius: 10px; width: 100%; margin-top: 10px; font-size: 11px; }
+    
+    #result { text-align: center; font-weight: bold; padding: 15px; }
   </style>
 </head>
 <body>
@@ -58,21 +62,17 @@
   </div>
 
   <div class="card">
-    <label>Einnahmen Details</label>
+    <div style="display: grid; grid-template-columns: 30px 1fr 100px; padding: 0 10px 10px 10px;">
+      <span></span><label>Kunde / Firma</label><label style="text-align: right;">Betrag (CHF)</label>
+    </div>
     <div id="zeilen"></div>
   </div>
 
   <div class="card">
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
       <div><label>Summe</label><input id="sumIncome" readonly value="0.00"></div>
-      <div>
-        <label class="negative-label">Tanken</label>
-        <input id="tanken" class="negative-input" type="number" step="0.05" oninput="recalc()">
-      </div>
-      <div style="grid-column: span 2;">
-        <label class="negative-label">Auszahlung</label>
-        <input id="auszahlung" class="negative-input" type="number" step="0.05" oninput="recalc()">
-      </div>
+      <div><label class="negative-label">Tanken</label><input id="tanken" class="negative-input" type="number" step="0.05" oninput="recalc()"></div>
+      <div style="grid-column: span 2;"><label class="negative-label">Auszahlung</label><input id="auszahlung" class="negative-input" type="number" step="0.05" oninput="recalc()"></div>
     </div>
   </div>
 
@@ -87,13 +87,17 @@
     <button type="button" class="btn-clear" onclick="clearSign()">LÖSCHEN</button>
   </div>
 
-  <button class="btn-send" onclick="submitData()" id="sendBtn">SENDEN</button>
+  <div class="btn-group">
+    <button class="btn-send" onclick="submitData()" id="sendBtn">PER EMAIL SENDEN</button>
+    <button class="btn-whatsapp" onclick="shareWhatsApp()">WHATSAPP</button>
+    <button class="btn-share" onclick="shareNative()">TEILEN</button>
+  </div>
 </div>
 
-<p id="result" style="text-align:center; font-weight:bold;"></p>
+<p id="result"></p>
 
 <script>
-  // ایجاد ردیف‌ها بدون صفر پیش‌فرض
+  // تولید ردیف‌ها
   const zeilen = document.getElementById("zeilen");
   for(let i=1; i<=15; i++) {
     zeilen.innerHTML += `<div class="row"><span>${i}</span><input id="c_${i}" placeholder="Firma"><input id="a_${i}" type="number" step="0.05" placeholder="0.00" oninput="recalc()"></div>`;
@@ -109,7 +113,7 @@
     document.getElementById("total").value = (sum - t - a).toFixed(2);
   }
 
-  // امضا با پشتیبانی از موس و لمس
+  // امضا با پشتیبانی کامل دسکتاپ و موبایل
   const canvas = document.getElementById("signature");
   const ctx = canvas.getContext("2d");
   canvas.width = canvas.offsetWidth; canvas.height = 160;
@@ -123,18 +127,29 @@
     return { x: cx - rect.left, y: cy - rect.top };
   };
 
-  const start = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); if(e.touches) e.preventDefault(); };
-  const move = (e) => { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); };
-  const stop = () => drawing = false;
+  canvas.onmousedown = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
+  canvas.onmousemove = (e) => { if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); } };
+  window.onmouseup = () => drawing = false;
 
-  canvas.addEventListener("touchstart", start, {passive: false});
-  canvas.addEventListener("touchmove", move, {passive: false});
-  canvas.addEventListener("touchend", stop);
-  canvas.addEventListener("mousedown", start);
-  canvas.addEventListener("mousemove", move);
-  window.addEventListener("mouseup", stop);
+  canvas.ontouchstart = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); };
+  canvas.ontouchmove = (e) => { if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); } };
+  canvas.ontouchend = () => drawing = false;
 
   function clearSign() { ctx.clearRect(0,0,canvas.width,canvas.height); }
+
+  // توابع اشتراک‌گذاری
+  function shareWhatsApp() {
+    const text = `Abrechnung NIK\nFahrer: ${document.getElementById('fahrer').value}\nTotal: ${document.getElementById('total').value} CHF`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+  }
+
+  async function shareNative() {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Abrechnung', text: `NIK Abrechnung - Total: ${document.getElementById('total').value} CHF`, url: window.location.href });
+      } catch (err) { console.log(err); }
+    }
+  }
 
   async function submitData() {
     const btn = document.getElementById("sendBtn");
@@ -145,31 +160,37 @@
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF();
       
-      // دیزاین PDF طبق سلیقه شما
+      // دیزاین PDF با نوار سبز و وسط‌چین
       pdf.setFillColor(5, 176, 132); 
       pdf.rect(0, 0, 210, 40, 'F');
       pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(24);
-      pdf.text("ABRECHNUNG", 15, 25);
+      pdf.setFontSize(26);
+      pdf.text("ABRECHNUNG", 105, 25, {align: 'center'});
 
       pdf.setTextColor(44, 62, 80);
-      pdf.setFontSize(11);
+      pdf.setFontSize(12);
       pdf.text(`Fahrer: ${document.getElementById("fahrer").value}`, 15, 55);
-      pdf.text(`Kennzeichen: ${document.getElementById("kennzeichen").value}`, 15, 62);
+      pdf.text(`Auto: ${document.getElementById("kennzeichen").value}`, 15, 62);
       pdf.text(`Datum: ${document.getElementById("datum").value}`, 15, 69);
 
+      // جدول با هایلایت سطرها
       pdf.setFillColor(5, 176, 132);
-      pdf.rect(15, 75, 180, 8, 'F');
+      pdf.rect(15, 80, 180, 10, 'F');
       pdf.setTextColor(255, 255, 255);
-      pdf.text("KUNDE / FIRMA", 20, 80.5);
-      pdf.text("BETRAG (CHF)", 150, 80.5);
+      pdf.text("KUNDE / FIRMA", 20, 87);
+      pdf.text("BETRAG (CHF)", 150, 87);
 
       pdf.setTextColor(44, 62, 80);
-      let y = 92;
+      let y = 100;
       for(let i=1; i<=15; i++) {
         const f = document.getElementById("c_"+i).value;
         const b = document.getElementById("a_"+i).value;
         if(f || b > 0) {
+          // افزودن هایلایت یکی‌درمیان
+          if(i % 2 === 0) {
+            pdf.setFillColor(245, 247, 246);
+            pdf.rect(15, y-5, 180, 8, 'F');
+          }
           pdf.text(f || "---", 20, y);
           pdf.text(`${b || '0.00'} CHF`, 150, y);
           y += 8;
@@ -177,16 +198,16 @@
       }
 
       y += 10;
-      pdf.setDrawColor(5, 176, 132);
+      pdf.setDrawColor(200, 200, 200);
       pdf.line(15, y, 195, y);
       y += 10;
       pdf.text(`Summe: ${document.getElementById("sumIncome").value} CHF`, 130, y);
-      pdf.setTextColor(220, 53, 69); // قرمز برای تانکن و پرداخت
+      pdf.setTextColor(220, 53, 69);
       pdf.text(`Tanken: ${document.getElementById("tanken").value || '0.00'} CHF`, 130, y+7);
       pdf.text(`Auszahlung: ${document.getElementById("auszahlung").value || '0.00'} CHF`, 130, y+14);
       
       y += 30;
-      pdf.setFontSize(16);
+      pdf.setFontSize(18);
       pdf.setTextColor(5, 176, 132);
       pdf.text(`NETTO TOTAL: ${document.getElementById("total").value} CHF`, 15, y);
 
@@ -202,10 +223,10 @@
 
       const resp = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: formData });
       if (resp.ok) {
-        document.getElementById("result").innerHTML = "Gesendet! ✅";
+        document.getElementById("result").innerHTML = "Erfolgreich gesendet! ✅";
         setTimeout(() => location.reload(), 2000);
       } else {
-        document.getElementById("result").innerHTML = "Fehler!";
+        document.getElementById("result").innerHTML = "Senden fehlgeschlagen.";
         btn.disabled = false;
       }
     } catch (err) {
