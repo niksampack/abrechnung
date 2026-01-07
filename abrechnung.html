@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elite Abrechnung | Zebra Green Edition</title>
+    <title>Elite Abrechnung | Premium Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root { 
             --brand-green: #065f46; 
             --soft-bg: #f9fafb;
-            --zebra: #f3f4f6;
+            --danger-red: #dc2626;
             --border: #e5e7eb;
         }
         body { font-family: -apple-system, system-ui, sans-serif; background: #f3f4f6; padding: 15px; margin: 0; color: #111827; }
@@ -34,17 +34,18 @@
         input { width: 100%; padding: 10px 0; border: none; border-bottom: 2px solid var(--border); font-size: 16px; box-sizing: border-box; background: transparent; transition: 0.3s; }
         input:focus { border-bottom-color: var(--brand-green); outline: none; }
 
-        /* استایل جدول با سطر یک‌درمیان (Zebra) */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         thead th { background: var(--brand-green); color: white; text-align: left; padding: 15px; font-size: 12px; }
         
-        /* هایلایت سطرها */
         tbody tr:nth-child(odd) { background-color: var(--soft-bg); }
         tbody tr:nth-child(even) { background-color: #ffffff; }
         
         td { padding: 12px 15px; border-bottom: 1px solid #eee; }
         .f-n { border: none !important; width: 100%; font-size: 15px; background: transparent; }
         .f-a { border: none !important; text-align: right; font-weight: 800; width: 120px !important; font-size: 16px; color: var(--brand-green); background: transparent; }
+
+        /* استایل قرمز برای فیلدهای کسر مبلغ در فرم */
+        .deduct-input { color: var(--danger-red) !important; font-weight: bold; border-bottom-color: var(--danger-red) !important; }
 
         #total-area { border-top: 4px solid var(--brand-green); padding: 25px 0; text-align: right; margin-top: 30px; }
         #total-area span { font-size: 38px; font-weight: 900; color: var(--brand-green); display: block; }
@@ -78,9 +79,9 @@
             <tbody id="rows"></tbody>
         </table>
         
-        <div class="info-grid" style="margin-top: 30px; background: #f9fafb; padding: 15px; border-radius: 8px;">
-            <div class="field"><label>Tanken Abzug (-)</label><input type="number" id="tanken" placeholder="0.00" oninput="calc()" step="0.01"></div>
-            <div class="field"><label>Auszahlung (-)</label><input type="number" id="auszahlung" placeholder="0.00" oninput="calc()" step="0.01"></div>
+        <div class="info-grid" style="margin-top: 30px; background: #fff1f2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
+            <div class="field"><label style="color: #dc2626;">Tanken Abzug (-)</label><input type="number" id="tanken" class="deduct-input" placeholder="0.00" oninput="calc()" step="0.01"></div>
+            <div class="field"><label style="color: #dc2626;">Auszahlung (-)</label><input type="number" id="auszahlung" class="deduct-input" placeholder="0.00" oninput="calc()" step="0.01"></div>
         </div>
         
         <div id="total-area">
@@ -126,7 +127,7 @@
 
     const getP = (e) => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX || (e.touches && e.touches[0].clientX)) - r.left, y: (e.clientY || (e.touches && e.touches[0].clientY)) - r.top }; }
     const start = (e) => { drawing = true; isSigned = true; ctx.beginPath(); const p = getP(e); ctx.moveTo(p.x, p.y); if(e.touches) e.preventDefault(); };
-    const move = (e) => { if(!drawing) return; const p = getPos = getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); };
+    const move = (e) => { if(!drawing) return; const p = getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); };
     canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', () => drawing = false);
     canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', move, {passive: false}); window.addEventListener('touchend', () => drawing = false);
     function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); isSigned = false; }
@@ -147,9 +148,12 @@
             if(parseFloat(a) > 0) data.push([n || '-', `${parseFloat(a).toFixed(2)} CHF`]);
         });
         
-        // افزودن بخش‌های منفی به جدول PDF
+        // تولید ردیف‌های قرمز در PDF برای Tanken و Auszahlung
         const tVal = parseFloat(document.getElementById('tanken').value || 0);
         const aVal = parseFloat(document.getElementById('auszahlung').value || 0);
+        
+        // افزودن داده‌ها با تنظیمات استایل اختصاصی برای ردیف‌های منفی
+        const rowsCount = data.length;
         if(tVal > 0) data.push(['Tanken (Abzug)', `-${tVal.toFixed(2)} CHF`]);
         if(aVal > 0) data.push(['Auszahlung (Abzug)', `-${aVal.toFixed(2)} CHF`]);
 
@@ -157,14 +161,23 @@
             startY: 75,
             head: [['KUNDE / FIRMA', 'BETRAG']],
             body: data,
-            theme: 'striped', // فعال کردن هایلایت یک‌درمیان در PDF
+            theme: 'striped',
             headStyles: { fillColor: [6, 95, 70], textColor: 255 },
-            columnStyles: { 1: { halign: 'right', fontStyle: 'bold', textColor: [6, 95, 70] } }
+            columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
+            didParseCell: function(data) {
+                // اگر ردیف مربوط به Tanken یا Auszahlung باشد، رنگ متن را قرمز کن
+                if (data.row.index >= rowsCount) {
+                    data.cell.styles.textColor = [220, 38, 38]; // رنگ قرمز
+                } else if (data.column.index === 1) {
+                    data.cell.styles.textColor = [6, 95, 70]; // رنگ سبز برای درآمدهای عادی
+                }
+            }
         });
 
         const y = doc.lastAutoTable.finalY + 15;
         doc.setDrawColor(6, 95, 70); doc.setLineWidth(1.5); doc.line(20, y, 190, y);
-        doc.setFontSize(24); doc.setFont("helvetica", "bold"); doc.text(`${document.getElementById('total').innerText} CHF`, 190, y+15, {align: 'right'});
+        doc.setFontSize(24); doc.setFont("helvetica", "bold"); doc.setTextColor(6, 95, 70);
+        doc.text(`${document.getElementById('total').innerText} CHF`, 190, y+15, {align: 'right'});
         doc.addImage(canvas.toDataURL('image/png'), 'PNG', 20, y+20, 60, 25);
         return doc;
     }
