@@ -3,139 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Abrechnung Elite | Green Edition</title>
+    <title>Elite Abrechnung | Green Luxury</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
         :root { 
-            --main-green: #065f46; /* سبز تیره حرفه‌ای */
-            --light-green: #ecfdf5; 
-            --border-color: #d1d5db; 
-            --text-main: #1f2937;
+            --brand-green: #065f46; 
+            --soft-green: #f0fdf4;
+            --border: #e5e7eb;
+            --text: #111827;
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f9fafb; padding: 15px; margin: 0; color: var(--text-main); }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: #f3f4f6; padding: 20px; margin: 0; color: var(--text); }
         
         .container { 
-            max-width: 850px; 
-            margin: 10px auto; 
+            max-width: 900px; 
+            margin: auto; 
             background: white; 
-            padding: 0; /* حذف پدینگ برای لبه‌های رنگی سربرگ */
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
-        /* سربرگ سبز کوتاه و وسط‌چین */
-        .form-header {
-            background: var(--main-green);
+        /* سربرگ سبز شیک */
+        .header-top {
+            background: var(--brand-green);
             color: white;
-            padding: 20px 10px;
+            padding: 30px;
             text-align: center;
         }
-        .form-header h2 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
+        .header-top h2 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
 
-        .content-padding { padding: 30px; }
+        .main-content { padding: 40px; }
 
-        .driver-info { 
+        .info-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-            gap: 20px; 
-            margin-bottom: 30px; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 25px; 
+            margin-bottom: 40px; 
         }
         
-        .field { margin-bottom: 10px; }
-        label { display: block; font-weight: 700; font-size: 11px; text-transform: uppercase; margin-bottom: 5px; color: #6b7280; letter-spacing: 0.5px; }
-        
-        input { width: 100%; padding: 10px 0; border: none; border-bottom: 1.5px solid var(--border-color); font-size: 16px; box-sizing: border-box; background: transparent; transition: 0.3s; }
-        input:focus { border-bottom-color: var(--main-green); outline: none; }
+        label { display: block; font-weight: 800; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; color: #6b7280; letter-spacing: 1px; }
+        input { width: 100%; padding: 12px 0; border: none; border-bottom: 2px solid var(--border); font-size: 16px; box-sizing: border-box; background: transparent; transition: 0.3s; }
+        input:focus { border-bottom-color: var(--brand-green); outline: none; }
 
-        /* جدول با نوار سبز */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        thead th { 
-            background: var(--light-green); 
-            color: var(--main-green); 
-            text-align: left; 
-            font-size: 12px; 
-            text-transform: uppercase; 
-            padding: 12px 10px; 
-            border-bottom: 2px solid var(--main-green); 
-        }
-        td { padding: 12px 10px; border-bottom: 1px solid #e5e7eb; } /* خطوط پررنگ‌تر */
+        /* استایل جدول */
+        .table-section { margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th { background: var(--brand-green); color: white; text-align: left; padding: 15px; font-size: 12px; text-transform: uppercase; }
+        td { padding: 12px 15px; border-bottom: 1.5px solid #f3f4f6; }
         
-        .f-n { border: none !important; width: 100%; font-size: 15px; }
-        .f-a { border: none !important; text-align: right; font-weight: 700; width: 100px !important; font-size: 16px; color: var(--main-green); }
+        .f-n { border: none !important; width: 100%; font-size: 15px; font-weight: 500; }
+        .f-a { border: none !important; text-align: right; font-weight: 800; width: 120px !important; font-size: 16px; color: var(--brand-green); }
 
-        .extra-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px; }
+        .deductions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; background: var(--soft-green); padding: 20px; border-radius: 12px; }
         
-        /* Total Betrag استایل شیک و کوچک‌تر */
-        #total-box { 
-            border-top: 2px solid var(--main-green); 
-            padding: 20px 0; 
+        #total-area { 
+            border-top: 4px solid var(--brand-green); 
+            padding: 30px 0; 
             text-align: right; 
-            margin-top: 30px; 
+            margin-top: 40px; 
         }
-        #total-box small { font-size: 11px; font-weight: 800; color: #6b7280; text-transform: uppercase; }
-        #total-box span { font-size: 32px; font-weight: 800; color: var(--main-green); display: block; }
+        #total-area small { font-size: 12px; font-weight: 900; color: #6b7280; text-transform: uppercase; }
+        #total-area span { font-size: 40px; font-weight: 900; color: var(--brand-green); display: block; letter-spacing: -1px; }
 
-        .canvas-wrapper { width: 100%; height: 180px; background: #fcfcfc; border: 1.5px solid #eee; margin-top: 10px; border-radius: 8px; }
-        canvas { width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+        .signature-box { margin-top: 30px; }
+        canvas { width: 100%; height: 200px; background: #fafafa; border: 2px dashed var(--border); border-radius: 12px; cursor: crosshair; touch-action: none; }
 
-        .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 30px; }
-        .btn { padding: 18px; border: none; border-radius: 8px; font-weight: 700; font-size: 14px; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
-        .btn-share { background: var(--main-green); color: white; }
-        .btn-send { background: white; color: var(--main-green); border: 2px solid var(--main-green); }
+        .btn-group { display: flex; flex-direction: column; gap: 15px; margin-top: 30px; }
+        .btn { padding: 20px; border: none; border-radius: 12px; font-weight: 800; font-size: 15px; text-transform: uppercase; cursor: pointer; transition: 0.3s; letter-spacing: 1px; }
+        .btn-green { background: var(--brand-green); color: white; }
+        .btn-outline { background: white; color: var(--brand-green); border: 2px solid var(--brand-green); }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
 
         @media (max-width: 600px) {
-            .content-padding { padding: 20px; }
-            h2 { font-size: 20px; }
-            #total-box span { font-size: 28px; }
+            .main-content { padding: 20px; }
+            .header-top h2 { font-size: 20px; }
+            #total-area span { font-size: 30px; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="form-header">
+    <div class="header-top">
         <h2>Abrechnung</h2>
     </div>
 
-    <form id="billingForm" class="content-padding">
-        <div class="driver-info">
-            <div class="field"><label>Fahrer Name *</label><input type="text" id="name" placeholder="Vorname Nachname" required></div>
-            <div class="field"><label>Autokennzeichen *</label><input type="text" id="plate" placeholder="ZH 000000" required></div>
+    <form id="billingForm" class="main-content">
+        <div class="info-grid">
+            <div class="field"><label>Fahrer Name *</label><input type="text" id="name" placeholder="Name Nachname" required></div>
+            <div class="field"><label>Autokennzeichen *</label><input type="text" id="plate" placeholder="ZH 123456" required></div>
             <div class="field"><label>Datum</label><input type="date" id="date" required></div>
         </div>
         
-        <table>
-            <thead><tr><th>Kunde / Firma</th><th style="text-align:right">Betrag CHF</th></tr></thead>
-            <tbody id="rows"></tbody>
-        </table>
+        <div class="table-section">
+            <table>
+                <thead><tr><th>Kunde / Firma</th><th style="text-align:right">Betrag CHF</th></tr></thead>
+                <tbody id="rows"></tbody>
+            </table>
+        </div>
         
-        <div class="extra-section">
+        <div class="deductions-grid">
             <div class="field"><label>Tanken Abzug (-)</label><input type="number" id="tanken" placeholder="0.00" oninput="calc()" step="0.01"></div>
             <div class="field"><label>Auszahlung (-)</label><input type="number" id="auszahlung" placeholder="0.00" oninput="calc()" step="0.01"></div>
         </div>
         
-        <div id="total-box">
+        <div id="total-area">
             <small>Netto Gesamtbetrag</small>
             <span id="total">0.00</span>
         </div>
         
-        <div class="field">
-            <label>Unterschrift / Signatur *</label>
-            <div class="canvas-wrapper"><canvas id="canvas"></canvas></div>
+        <div class="signature-box">
+            <label>Bestätigung / Signatur *</label>
+            <canvas id="canvas"></canvas>
             <button type="button" style="background:none;border:none;color:#999;font-size:10px;width:100%;padding:10px;cursor:pointer" onclick="clearCanvas()">LÖSCHEN / CLEAR</button>
         </div>
         
-        <div class="actions">
-            <button type="button" class="btn btn-share" id="shareBtn">WhatsApp Share</button>
-            <button type="submit" class="btn btn-send" id="sendBtn">Email Senden</button>
+        <div class="btn-group">
+            <button type="button" class="btn btn-green" id="shareBtn">PDF DIREKT TEILEN (WhatsApp)</button>
+            <button type="submit" class="btn btn-outline" id="sendBtn">PER E-MAIL SENDEN</button>
         </div>
     </form>
 </div>
@@ -145,7 +131,7 @@
     document.getElementById('date').valueAsDate = new Date();
     const tbody = document.getElementById('rows');
     for(let i=1; i<=15; i++) {
-        tbody.innerHTML += `<tr><td><input type="text" class="f-n" placeholder="..."></td><td><input type="number" class="f-a" placeholder="0.00" oninput="calc()" step="0.01"></td></tr>`;
+        tbody.innerHTML += `<tr><td><input type="text" class="f-n" placeholder="Firma ${i}..."></td><td><input type="number" class="f-a" placeholder="0.00" oninput="calc()" step="0.01"></td></tr>`;
     }
 
     let isSigned = false;
@@ -161,15 +147,14 @@
     const ctx = canvas.getContext('2d');
     let drawing = false;
 
-    function resizeCanvas() {
+    function resize() {
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
-        ctx.lineWidth = 2.5; ctx.strokeStyle = '#000'; ctx.lineCap = 'round';
+        ctx.lineWidth = 3; ctx.strokeStyle = '#000'; ctx.lineCap = 'round';
     }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+    window.addEventListener('resize', resize); resize();
 
-    function getPos(e) {
+    const getPos = (e) => {
         const r = canvas.getBoundingClientRect();
         return { x: (e.clientX || (e.touches && e.touches[0].clientX)) - r.left, y: (e.clientY || (e.touches && e.touches[0].clientY)) - r.top };
     }
@@ -184,40 +169,58 @@
 
     async function makePDF() {
         const doc = new jsPDF();
-        // سربرگ سبز کوتاه
-        doc.setFillColor(6, 95, 70); doc.rect(0, 0, 210, 35, 'F');
-        doc.setTextColor(255); doc.setFont("helvetica", "bold"); doc.setFontSize(24); doc.text("ABRECHNUNG", 105, 22, {align: 'center'});
         
-        doc.setTextColor(0); doc.setFontSize(10); doc.text("FAHRER DETAILS", 20, 50);
+        // سربرگ سبز شیک
+        doc.setFillColor(6, 95, 70); doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255); doc.setFont("helvetica", "bold"); doc.setFontSize(28); doc.text("ABRECHNUNG", 105, 25, {align: 'center'});
+        
+        doc.setTextColor(0); doc.setFontSize(10); doc.text("FAHRER DETAILS", 20, 55);
         doc.setFont("helvetica", "normal");
-        doc.text(`Name: ${document.getElementById('name').value}`, 20, 58);
-        doc.text(`Kennzeichen: ${document.getElementById('plate').value}`, 20, 64);
-        doc.text(`Datum: ${document.getElementById('date').value}`, 20, 70);
+        doc.text(`Name: ${document.getElementById('name').value}`, 20, 63);
+        doc.text(`Kennzeichen: ${document.getElementById('plate').value}`, 20, 69);
+        doc.text(`Datum: ${document.getElementById('date').value}`, 20, 75);
 
-        const data = [];
+        const tableBody = [];
         document.querySelectorAll('#rows tr').forEach(tr => {
             const n = tr.querySelector('.f-n').value;
             const a = tr.querySelector('.f-a').value;
-            if(parseFloat(a) > 0) data.push([n || '-', `${parseFloat(a).toFixed(2)} CHF`]);
+            if(parseFloat(a) > 0) tableBody.push([n || '-', `${parseFloat(a).toFixed(2)} CHF`]);
         });
 
+        // افزودن Tanken و Auszahlung به انتهای جدول
+        const tVal = parseFloat(document.getElementById('tanken').value || 0);
+        const aVal = parseFloat(document.getElementById('auszahlung').value || 0);
+        if(tVal > 0) tableBody.push(['Tanken (Abzug)', `-${tVal.toFixed(2)} CHF`]);
+        if(aVal > 0) tableBody.push(['Auszahlung (Abzug)', `-${aVal.toFixed(2)} CHF`]);
+
         doc.autoTable({
-            startY: 80, head: [['KUNDE / FIRMA', 'BETRAG']], body: data,
-            theme: 'striped', headStyles: { fillStyle: 'f', fillColor: [6, 95, 70], textColor: 255 },
-            columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
-            styles: { font: 'helvetica', cellPadding: 4 }
+            startY: 85,
+            head: [['KUNDE / FIRMA', 'BETRAG']],
+            body: tableBody,
+            theme: 'grid',
+            headStyles: { fillColor: [6, 95, 70], textColor: 255, fontStyle: 'bold' },
+            columnStyles: { 
+                0: { cellWidth: 120 },
+                1: { halign: 'right', fontStyle: 'bold', textColor: [6, 95, 70] } 
+            },
+            styles: { fontSize: 10, cellPadding: 5 }
         });
 
         const y = doc.lastAutoTable.finalY + 15;
-        doc.setFontSize(22); doc.setTextColor(6, 95, 70); doc.setFont("helvetica", "bold");
-        doc.text(`TOTAL: ${document.getElementById('total').innerText} CHF`, 190, y+10, {align: 'right'});
-        doc.addImage(canvas.toDataURL('image/png'), 'PNG', 20, y+15, 60, 25);
+        doc.setDrawColor(6, 95, 70); doc.setLineWidth(1.5); doc.line(20, y, 190, y);
+        
+        doc.setFontSize(24); doc.setTextColor(6, 95, 70); doc.setFont("helvetica", "bold");
+        doc.text(`TOTAL: ${document.getElementById('total').innerText} CHF`, 190, y+15, {align: 'right'});
+        
+        doc.setFontSize(10); doc.setTextColor(150); doc.text("RECHTSGÜLTIGE UNTERSCHRIFT", 20, y+25);
+        doc.addImage(canvas.toDataURL('image/png'), 'PNG', 20, y+30, 65, 28);
         return doc;
     }
 
     document.getElementById('billingForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         if(!isSigned) { alert("Bitte unterschreiben!"); return; }
+        const btn = document.getElementById('sendBtn'); btn.innerText = "SENDING...";
         const doc = await makePDF();
         const fd = new FormData();
         fd.append("access_key", "817b5739-ed89-4340-9674-57d210b081b7");
@@ -228,10 +231,11 @@
     });
 
     document.getElementById('shareBtn').addEventListener('click', async () => {
-        if(!document.getElementById('name').value || !isSigned) { alert("Name و امضا!"); return; }
+        if(!document.getElementById('name').value || !isSigned) { alert("Name و امضا اجباری است!"); return; }
         const doc = await makePDF();
         const file = new File([doc.output('blob')], "Abrechnung.pdf", {type: "application/pdf"});
-        if (navigator.share) await navigator.share({files:[file]}); else doc.save('Abrechnung.pdf');
+        if (navigator.share) await navigator.share({files:[file]});
+        else doc.save('Abrechnung.pdf');
     });
 </script>
 </body>
