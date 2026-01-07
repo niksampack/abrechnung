@@ -3,49 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Premium Abrechnung System</title>
+    <title>Premium Abrechnung | Multi-Device</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <style>
-        :root {
-            --primary: #0f172a; --accent: #2563eb; --success: #059669;
-            --danger: #dc2626; --bg: #f8fafc; --border: #e2e8f0;
-        }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); padding: 15px; margin: 0; color: var(--primary); }
-        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        h2 { text-align: center; font-size: 24px; font-weight: 800; margin-bottom: 25px; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+        :root { --main-black: #000000; --border-color: #e0e0e0; }
+        body { font-family: 'Inter', sans-serif; background: #fafafa; padding: 20px; margin: 0; color: var(--main-black); }
         
-        /* بخش اطلاعات راننده */
-        .driver-info { background: #f1f5f9; padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid var(--border); }
-        .field { margin-bottom: 15px; }
-        .field:last-child { margin-bottom: 0; }
-        label { display: block; font-weight: 700; font-size: 12px; color: #64748b; text-transform: uppercase; margin-bottom: 6px; }
-        input { width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 12px; font-size: 16px; box-sizing: border-box; transition: 0.2s; }
-        input:focus { border-color: var(--accent); outline: none; background: white; }
+        /* اصلاح عرض فرم: در موبایل 100% و در کامپیوتر تا 850 پیکسل */
+        .container { 
+            max-width: 850px; 
+            margin: 20px auto; 
+            background: white; 
+            padding: 40px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+        }
 
-        /* جدول شرکت‌ها */
-        .table-box { border: 2px solid #f1f5f9; border-radius: 16px; overflow: hidden; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 12px; text-align: left; font-size: 11px; color: #94a3b8; border-bottom: 2px solid #f1f5f9; }
-        td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
-        .f-n { border: none !important; font-weight: 500; background: transparent; }
-        .f-a { border: 2px solid #f1f5f9 !important; text-align: right; font-weight: 700; color: var(--accent); width: 100px !important; border-radius: 8px !important; }
+        h2 { text-align: left; font-size: 35px; font-weight: 900; letter-spacing: -2px; text-transform: uppercase; margin-bottom: 40px; border-left: 10px solid #000; padding-left: 15px; }
 
-        /* محاسبات نهایی */
-        .deductions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .deduct-item { background: #fff; border: 2px solid #f1f5f9; padding: 12px; border-radius: 12px; }
-        #total-card { background: var(--primary); color: white; padding: 25px; border-radius: 20px; text-align: center; margin: 25px 0; box-shadow: 0 10px 15px rgba(0,0,0,0.2); }
-        #total-card span { font-size: 32px; font-weight: 900; display: block; margin-top: 5px; }
+        /* چیدمان هوشمند: در کامپیوتر دو ستونه، در موبایل تک ستونه */
+        .driver-info { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 20px; 
+            margin-bottom: 40px; 
+        }
+        
+        .field { margin-bottom: 20px; }
+        label { display: block; font-weight: 800; font-size: 10px; text-transform: uppercase; margin-bottom: 5px; color: #888; letter-spacing: 2px; }
+        input { width: 100%; padding: 12px 0; border: none; border-bottom: 1px solid var(--border-color); font-size: 16px; box-sizing: border-box; background: transparent; }
+        input:focus { border-bottom-color: var(--main-black); outline: none; }
 
-        /* امضا */
-        canvas { border: 2px dashed #cbd5e1; width: 100%; height: 160px; background: white; border-radius: 16px; touch-action: none; margin-top: 10px; }
-        .btn-clear { background: none; color: #94a3b8; border: none; width: 100%; padding: 10px; font-size: 12px; text-decoration: underline; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { text-align: left; font-size: 11px; text-transform: uppercase; padding: 15px 0; border-bottom: 2px solid var(--main-black); }
+        td { padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+        .f-n { border: none !important; width: 100%; font-size: 15px; }
+        .f-a { border: none !important; text-align: right; font-weight: 900; width: 100px !important; font-size: 16px; }
 
-        /* دکمه‌های عملیاتی */
-        .actions { display: grid; gap: 12px; margin-top: 20px; }
-        .btn { padding: 18px; border: none; border-radius: 16px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.3s; color: white; }
-        .btn-share { background: linear-gradient(135deg, #22c55e, #16a34a); }
-        .btn-send { background: linear-gradient(135deg, #3b82f6, #1e3a8a); }
+        .extra-section { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 40px; }
+        #total-box { border-top: 4px solid var(--main-black); padding: 25px 0; text-align: right; margin: 40px 0; }
+        #total-box span { font-size: 45px; font-weight: 900; letter-spacing: -2px; }
+
+        /* اصلاح بخش امضا برای کارکرد با موس و لمس */
+        .canvas-wrapper { position: relative; width: 100%; height: 200px; background: #fafafa; border: 1px solid #f0f0f0; margin-top: 10px; }
+        canvas { width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+
+        .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 30px; }
+        .btn { padding: 20px; border: none; font-weight: 900; font-size: 13px; text-transform: uppercase; cursor: pointer; letter-spacing: 2px; }
+        .btn-share { background: #000; color: #fff; }
+        .btn-send { background: #fff; color: #000; border: 2px solid #000; }
+
+        /* استایل‌های مخصوص موبایل (Media Query) */
+        @media (max-width: 600px) {
+            .container { padding: 20px; margin: 0; }
+            h2 { font-size: 28px; }
+            #total-box span { font-size: 35px; }
+            .actions { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -54,34 +68,37 @@
     <h2>Abrechnung</h2>
     
     <div class="driver-info">
-        <div class="field"><label>Fahrername</label><input type="text" id="name" placeholder="Name Nachname"></div>
-        <div class="field"><label>Autokennzeichen</label><input type="text" id="plate" placeholder="ZH 123456"></div>
+        <div class="field"><label>Fahrer Details</label><input type="text" id="name" placeholder="VORNAME NACHNAME"></div>
+        <div class="field"><label>Fahrzeug</label><input type="text" id="plate" placeholder="ZH 000000"></div>
         <div class="field"><label>Datum</label><input type="date" id="date"></div>
     </div>
     
-    <div class="table-box">
-        <table>
-            <thead><tr><th>FIRMA / KUNDE</th><th style="text-align:right">BETRAG (CHF)</th></tr></thead>
-            <tbody id="rows"></tbody>
-        </table>
+    <table>
+        <thead><tr><th>Position / Kunde</th><th style="text-align:right">Betrag CHF</th></tr></thead>
+        <tbody id="rows"></tbody>
+    </table>
+    
+    <div class="extra-section">
+        <div class="field"><label>Tanken Abzug</label><input type="number" id="tanken" placeholder="0.00" oninput="calc()"></div>
+        <div class="field"><label>Auszahlung</label><input type="number" id="auszahlung" placeholder="0.00" oninput="calc()"></div>
     </div>
     
-    <div class="deductions">
-        <div class="deduct-item"><label>Tanken (-)</label><input type="number" id="tanken" placeholder="0.00" oninput="calc()"></div>
-        <div class="deduct-item"><label>Auszahlung (-)</label><input type="number" id="auszahlung" placeholder="0.00" oninput="calc()"></div>
+    <div id="total-box">
+        <label style="text-align: right;">Gesamtbetrag Netto</label>
+        <span id="total">0.00</span>
     </div>
     
-    <div class="field" style="margin-top:15px;"><label>Notizen</label><textarea id="notes" style="width:100%; padding:12px; border:2px solid var(--border); border-radius:12px; resize:none;" rows="2"></textarea></div>
-    
-    <div id="total-card"><small>NETTO GESAMTBETRAG</small><span id="total">0.00</span></div>
-    
-    <label>Unterschrift</label>
-    <canvas id="canvas"></canvas>
-    <button class="btn-clear" onclick="clearCanvas()">Signatur löschen</button>
+    <div class="field">
+        <label>Bestätigung / Signatur</label>
+        <div class="canvas-wrapper">
+            <canvas id="canvas"></canvas>
+        </div>
+        <button type="button" style="background:none;border:none;color:#aaa;font-size:10px;width:100%;padding:10px;cursor:pointer" onclick="clearCanvas()">SIGNATUR LÖSCHEN</button>
+    </div>
     
     <div class="actions">
-        <button class="btn btn-share" id="shareBtn">PDF DIREKT TEILEN</button>
-        <button class="btn btn-send" id="sendBtn">ALS E-MAIL SENDEN</button>
+        <button class="btn btn-share" id="shareBtn">WhatsApp Share</button>
+        <button class="btn btn-send" id="sendBtn">Email Senden</button>
     </div>
 </div>
 
@@ -90,7 +107,7 @@
     document.getElementById('date').valueAsDate = new Date();
     const tbody = document.getElementById('rows');
     for(let i=1; i<=15; i++) {
-        tbody.innerHTML += `<tr><td><input type="text" class="f-n" placeholder="Firma ${i}..."></td><td><input type="number" class="f-a" placeholder="0.00" oninput="calc()"></td></tr>`;
+        tbody.innerHTML += `<tr><td><input type="text" class="f-n" placeholder="Posten ${i}..."></td><td><input type="number" class="f-a" placeholder="0.00" oninput="calc()"></td></tr>`;
     }
 
     function calc() {
@@ -101,32 +118,50 @@
         document.getElementById('total').innerText = t.toFixed(2);
     }
 
+    // اصلاح سیستم امضا برای موس و لمس
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     let drawing = false;
-    canvas.width = canvas.offsetWidth; canvas.height = 160;
-    ctx.lineWidth = 3; ctx.strokeStyle = '#0f172a';
 
-    const getP = (e) => {
+    function resizeCanvas() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#000';
+        ctx.lineCap = 'round';
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function getPos(e) {
         const r = canvas.getBoundingClientRect();
         const x = (e.clientX || (e.touches && e.touches[0].clientX)) - r.left;
         const y = (e.clientY || (e.touches && e.touches[0].clientY)) - r.top;
         return { x, y };
-    };
-    canvas.addEventListener('touchstart', (e) => { drawing = true; ctx.beginPath(); const p = getP(e); ctx.moveTo(p.x, p.y); e.preventDefault(); }, {passive: false});
-    canvas.addEventListener('touchmove', (e) => { if(!drawing) return; const p = getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }, {passive: false});
-    window.addEventListener('touchend', () => drawing = false);
+    }
+
+    // رویدادهای موس
+    canvas.addEventListener('mousedown', (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('mousemove', (e) => { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    window.addEventListener('mouseup', () => drawing = false);
+
+    // رویدادهای لمسی
+    canvas.addEventListener('touchstart', (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); }, {passive: false});
+    canvas.addEventListener('touchmove', (e) => { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }, {passive: false});
+    
     function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
-    async function generatePDF() {
+    async function makePDF() {
         const doc = new jsPDF();
-        doc.setFillColor(15, 23, 42); doc.rect(0, 0, 210, 40, 'F');
-        doc.setTextColor(255); doc.setFontSize(22); doc.text("ABRECHNUNGSBELEG", 105, 25, {align: 'center'});
+        doc.setFillColor(0, 0, 0); doc.rect(0, 0, 210, 50, 'F');
+        doc.setTextColor(255); doc.setFont("helvetica", "bold"); doc.setFontSize(35); doc.text("ABRECHNUNG", 20, 35);
         
-        doc.setTextColor(0); doc.setFontSize(10);
-        doc.text(`Fahrer: ${document.getElementById('name').value}`, 20, 50);
-        doc.text(`Kennzeichen: ${document.getElementById('plate').value}`, 20, 56);
-        doc.text(`Datum: ${document.getElementById('date').value}`, 20, 62);
+        doc.setTextColor(0); doc.setFontSize(9); doc.setFont("helvetica", "bold");
+        doc.text("FAHRER INFORMATIONEN", 20, 65);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Name: ${document.getElementById('name').value}`, 20, 72);
+        doc.text(`Fahrzeug: ${document.getElementById('plate').value}`, 20, 78);
+        doc.text(`Datum: ${document.getElementById('date').value}`, 20, 84);
 
         const tableBody = [];
         document.querySelectorAll('#rows tr').forEach(tr => {
@@ -136,33 +171,31 @@
         });
 
         doc.autoTable({
-            startY: 70, head: [['Kunde / Firma', 'Betrag']], body: tableBody,
-            theme: 'grid', headStyles: { fillGray: 240, textColor: 0 },
-            columnStyles: { 1: { halign: 'right' } }
+            startY: 95, head: [['POSITION / KUNDE', 'BETRAG']], body: tableBody,
+            theme: 'plain', headStyles: { borderBottom: 1, fontStyle: 'bold', textColor: 0 },
+            columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } }
         });
 
-        const y = doc.lastAutoTable.finalY + 10;
-        doc.text(`Abzug Tanken: -${parseFloat(document.getElementById('tanken').value || 0).toFixed(2)} CHF`, 20, y);
-        doc.text(`Abzug Auszahlung: -${parseFloat(document.getElementById('auszahlung').value || 0).toFixed(2)} CHF`, 20, y+7);
-        doc.setFontSize(14); doc.text(`NETTO TOTAL: ${document.getElementById('total').innerText} CHF`, 190, y+20, {align: 'right'});
-        
-        doc.addImage(canvas.toDataURL('image/png'), 'PNG', 20, y+30, 50, 25);
+        const y = doc.lastAutoTable.finalY + 20;
+        doc.setFontSize(22); doc.setFont("helvetica", "bold");
+        doc.text(`TOTAL: ${document.getElementById('total').innerText} CHF`, 190, y+10, {align: 'right'});
+        doc.addImage(canvas.toDataURL('image/png'), 'PNG', 20, y+15, 55, 25);
         return doc;
     }
 
     document.getElementById('sendBtn').addEventListener('click', async () => {
-        const btn = document.getElementById('sendBtn'); btn.innerText = "Senden...";
-        const doc = await generatePDF();
+        const btn = document.getElementById('sendBtn'); btn.innerText = "SENDING...";
+        const doc = await makePDF();
         const fd = new FormData();
         fd.append("access_key", "817b5739-ed89-4340-9674-57d210b081b7");
         fd.append("attachment", doc.output('blob'), "Abrechnung.pdf");
         fd.append("from_name", document.getElementById('name').value);
         await fetch("https://api.web3forms.com/submit", { method: "POST", body: fd });
-        alert("Erfolgreich gesendet!"); location.reload();
+        alert("Abrechnung wurde gesendet!"); location.reload();
     });
 
     document.getElementById('shareBtn').addEventListener('click', async () => {
-        const doc = await generatePDF();
+        const doc = await makePDF();
         const file = new File([doc.output('blob')], "Abrechnung.pdf", {type: "application/pdf"});
         if (navigator.share) await navigator.share({files:[file]});
         else doc.save('Abrechnung.pdf');
