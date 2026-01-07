@@ -40,6 +40,9 @@
     .btn-clear { background: #fff; color: var(--accent); border: 1px solid #fee2e2; padding: 10px; border-radius: 10px; width: 100%; margin-top: 10px; font-size: 11px; cursor: pointer; }
     
     #result { text-align: center; font-weight: bold; padding: 15px; color: var(--brand-green); }
+    
+    /* استایل خطا */
+    .input-error { border: 2px solid #dc3545 !important; background-color: #fff8f8 !important; }
   </style>
 </head>
 <body>
@@ -52,8 +55,8 @@
   <div class="card">
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
       <div><label>Datum</label><input id="datum" type="date"></div>
-      <div><label>Kennzeichen</label><input id="kennzeichen" type="text" placeholder="SO..."></div>
-      <div style="grid-column: span 2;"><label>Fahrer Name</label><input id="fahrer" type="text" placeholder="Vorname Nachname"></div>
+      <div><label>Kennzeichen *</label><input id="kennzeichen" type="text" placeholder="SO..." required></div>
+      <div style="grid-column: span 2;"><label>Fahrer Name *</label><input id="fahrer" type="text" placeholder="Vorname Nachname" required></div>
     </div>
   </div>
 
@@ -78,7 +81,7 @@
   </div>
 
   <div class="card">
-    <label>Unterschrift</label>
+    <label>Unterschrift *</label>
     <canvas id="signature"></canvas>
     <button type="button" class="btn-clear" onclick="clearSign()">UNTERSCHRIFT LÖSCHEN</button>
   </div>
@@ -108,13 +111,15 @@
     document.getElementById("total").value = (sum - t - a).toFixed(2);
   }
 
-  // سیستم امضا (اصلاح شده برای دسکتاپ و موبایل)
+  // سیستم امضا + متغیر وضعیت امضا
   const canvas = document.getElementById("signature");
   const ctx = canvas.getContext("2d");
   canvas.width = canvas.offsetWidth; canvas.height = 160;
   ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.strokeStyle = "#1a2a6c";
   
   let drawing = false;
+  let isSigned = false; // متغیر برای چک کردن اینکه امضا شده یا نه
+
   function getPos(e) {
     const rect = canvas.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -122,28 +127,65 @@
     return { x: clientX - rect.left, y: clientY - rect.top };
   }
 
-  canvas.addEventListener("mousedown", (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
-  canvas.addEventListener("mousemove", (e) => { if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); } });
-  window.addEventListener("mouseup", () => drawing = false);
+  function startDraw(e) { drawing = true; isSigned = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); if(e.type === 'touchstart') e.preventDefault(); }
+  function moveDraw(e) { if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.type === 'touchmove') e.preventDefault(); } }
+  function endDraw() { drawing = false; }
 
-  canvas.addEventListener("touchstart", (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); }, {passive: false});
-  canvas.addEventListener("touchmove", (e) => { if(drawing) { const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); } }, {passive: false});
-  canvas.addEventListener("touchend", () => drawing = false);
+  canvas.addEventListener("mousedown", startDraw);
+  canvas.addEventListener("mousemove", moveDraw);
+  window.addEventListener("mouseup", endDraw);
 
-  function clearSign() { ctx.clearRect(0,0,canvas.width,canvas.height); }
+  canvas.addEventListener("touchstart", startDraw, {passive: false});
+  canvas.addEventListener("touchmove", moveDraw, {passive: false});
+  canvas.addEventListener("touchend", endDraw);
+
+  function clearSign() { 
+    ctx.clearRect(0,0,canvas.width,canvas.height); 
+    isSigned = false; 
+  }
+
+  // تابع اعتبارسنجی فرم
+  function validateForm() {
+    const fahrer = document.getElementById("fahrer");
+    const kennzeichen = document.getElementById("kennzeichen");
+    let isValid = true;
+
+    // ریست استایل خطا
+    fahrer.classList.remove("input-error");
+    kennzeichen.classList.remove("input-error");
+    canvas.style.border = "2px dashed #e2e8f0";
+
+    if (!fahrer.value.trim()) {
+      fahrer.classList.add("input-error");
+      isValid = false;
+    }
+    if (!kennzeichen.value.trim()) {
+      kennzeichen.classList.add("input-error");
+      isValid = false;
+    }
+    if (!isSigned) {
+      canvas.style.border = "2px dashed #dc3545"; // قرمز کردن کادر امضا
+      isValid = false;
+    }
+
+    if (!isValid) {
+      alert("Bitte füllen Sie alle Pflichtfelder aus (Name, Kennzeichen, Unterschrift).");
+      return false;
+    }
+    return true;
+  }
 
   async function generatePDF() {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
     
-    // هدر سبز مشابه عکس
+    // هدر سبز
     pdf.setFillColor(5, 176, 132); 
     pdf.rect(0, 0, 210, 45, 'F');
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(28);
-    pdf.text("ABRECHNUNG", 105, 28, {align: 'center'});
-    pdf.setFontSize(10);
-    pdf.text("NIK TRANSPORT LOGISTIC", 105, 36, {align: 'center'});
+    // فقط ABRECHNUNG (NIK TRANSPORT حذف شد)
+    pdf.text("ABRECHNUNG", 105, 30, {align: 'center'});
 
     // مشخصات
     pdf.setTextColor(44, 62, 80);
@@ -158,7 +200,7 @@
     pdf.text(`Kennzeichen: ${document.getElementById("kennzeichen").value}`, 15, 80);
     pdf.text(`Datum: ${document.getElementById("datum").value}`, 15, 88);
 
-    // جدول با هایلایت مشابه عکس
+    // جدول
     pdf.setFillColor(5, 176, 132);
     pdf.rect(15, 98, 180, 10, 'F');
     pdf.setTextColor(255, 255, 255);
@@ -185,7 +227,7 @@
       }
     }
 
-    // خط پایان و محاسبات
+    // جمع کل
     pdf.setDrawColor(5, 176, 132);
     pdf.line(15, y, 195, y);
     y += 12;
@@ -201,16 +243,24 @@
     pdf.setTextColor(5, 176, 132);
     pdf.text(`NETTO TOTAL: ${document.getElementById("total").value} CHF`, 15, y);
 
-    // امضا
-    const sigData = canvas.toDataURL("image/png");
-    pdf.setFillColor(255, 255, 255);
-    pdf.rect(15, y+5, 60, 30, 'F');
-    pdf.addImage(sigData, 'PNG', 15, y+5, 60, 30);
+    // امضا + متن UNTERSCHRIFT
+    if(isSigned) {
+      pdf.setFontSize(10);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text("UNTERSCHRIFT", 15, y+4); // اضافه شدن کلمه Unterschrift بالای کادر
+
+      const sigData = canvas.toDataURL("image/png");
+      pdf.setFillColor(255, 255, 255);
+      pdf.rect(15, y+5, 60, 30, 'F');
+      pdf.addImage(sigData, 'PNG', 15, y+5, 60, 30);
+    }
     
     return pdf;
   }
 
   async function sharePDF() {
+    if(!validateForm()) return; // بررسی اجباری بودن فیلدها
+    
     const pdf = await generatePDF();
     const pdfBlob = pdf.output('blob');
     const file = new File([pdfBlob], "Abrechnung.pdf", { type: "application/pdf" });
@@ -227,6 +277,8 @@
   }
 
   async function submitData() {
+    if(!validateForm()) return; // بررسی اجباری بودن فیلدها
+
     const btn = document.getElementById("sendBtn");
     btn.disabled = true;
     document.getElementById("result").innerHTML = "Wird gesendet...";
