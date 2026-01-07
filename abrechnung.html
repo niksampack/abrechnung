@@ -41,7 +41,6 @@
     
     #result { text-align: center; font-weight: bold; padding: 15px; color: var(--brand-green); }
     
-    /* استایل خطا */
     .input-error { border: 2px solid #dc3545 !important; background-color: #fff8f8 !important; }
   </style>
 </head>
@@ -95,7 +94,7 @@
 <p id="result"></p>
 
 <script>
-  // ایجاد ردیف‌ها
+  // ردیف‌ها
   const zeilen = document.getElementById("zeilen");
   for(let i=1; i<=15; i++) {
     zeilen.innerHTML += `<div class="row"><span>${i}</span><input id="c_${i}" placeholder="Firma..."><input id="a_${i}" type="number" step="0.05" placeholder="0.00" oninput="recalc()"></div>`;
@@ -111,14 +110,14 @@
     document.getElementById("total").value = (sum - t - a).toFixed(2);
   }
 
-  // سیستم امضا + متغیر وضعیت امضا
+  // امضا
   const canvas = document.getElementById("signature");
   const ctx = canvas.getContext("2d");
   canvas.width = canvas.offsetWidth; canvas.height = 160;
   ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.strokeStyle = "#1a2a6c";
   
   let drawing = false;
-  let isSigned = false; // متغیر برای چک کردن اینکه امضا شده یا نه
+  let isSigned = false;
 
   function getPos(e) {
     const rect = canvas.getBoundingClientRect();
@@ -144,34 +143,21 @@
     isSigned = false; 
   }
 
-  // تابع اعتبارسنجی فرم
+  // اعتبارسنجی
   function validateForm() {
     const fahrer = document.getElementById("fahrer");
     const kennzeichen = document.getElementById("kennzeichen");
     let isValid = true;
 
-    // ریست استایل خطا
     fahrer.classList.remove("input-error");
     kennzeichen.classList.remove("input-error");
     canvas.style.border = "2px dashed #e2e8f0";
 
-    if (!fahrer.value.trim()) {
-      fahrer.classList.add("input-error");
-      isValid = false;
-    }
-    if (!kennzeichen.value.trim()) {
-      kennzeichen.classList.add("input-error");
-      isValid = false;
-    }
-    if (!isSigned) {
-      canvas.style.border = "2px dashed #dc3545"; // قرمز کردن کادر امضا
-      isValid = false;
-    }
+    if (!fahrer.value.trim()) { fahrer.classList.add("input-error"); isValid = false; }
+    if (!kennzeichen.value.trim()) { kennzeichen.classList.add("input-error"); isValid = false; }
+    if (!isSigned) { canvas.style.border = "2px dashed #dc3545"; isValid = false; }
 
-    if (!isValid) {
-      alert("Bitte füllen Sie alle Pflichtfelder aus (Name, Kennzeichen, Unterschrift).");
-      return false;
-    }
+    if (!isValid) { alert("Bitte füllen Sie alle Pflichtfelder aus (Name, Kennzeichen, Unterschrift)."); return false; }
     return true;
   }
 
@@ -179,12 +165,11 @@
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF();
     
-    // هدر سبز
+    // هدر
     pdf.setFillColor(5, 176, 132); 
     pdf.rect(0, 0, 210, 45, 'F');
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(28);
-    // فقط ABRECHNUNG (NIK TRANSPORT حذف شد)
     pdf.text("ABRECHNUNG", 105, 30, {align: 'center'});
 
     // مشخصات
@@ -202,15 +187,15 @@
 
     // جدول
     pdf.setFillColor(5, 176, 132);
-    pdf.rect(15, 98, 180, 10, 'F');
+    pdf.rect(15, 96, 180, 10, 'F'); // کمی بالاتر کشیدم
     pdf.setTextColor(255, 255, 255);
     pdf.setFont(undefined, 'bold');
-    pdf.text("KUNDE / FIRMA", 20, 105);
-    pdf.text("BETRAG (CHF)", 150, 105);
+    pdf.text("KUNDE / FIRMA", 20, 103);
+    pdf.text("BETRAG (CHF)", 150, 103);
 
     pdf.setTextColor(44, 62, 80);
     pdf.setFont(undefined, 'normal');
-    let y = 116;
+    let y = 114; // شروع جدول کمی بالاتر
     let count = 0;
     for(let i=1; i<=15; i++) {
       const f = document.getElementById("c_"+i).value;
@@ -218,48 +203,49 @@
       if(f || b > 0) {
         if(count % 2 === 0) {
           pdf.setFillColor(245, 247, 246);
-          pdf.rect(15, y-6, 180, 8, 'F');
+          pdf.rect(15, y-5, 180, 7, 'F'); // ارتفاع هایلایت رو کم کردم
         }
         pdf.text(f || "---", 20, y);
         pdf.text(`${Number(b).toFixed(2)} CHF`, 150, y);
-        y += 8;
+        y += 7; // فاصله بین خطوط رو از ۸ به ۷ کم کردم (صرفه‌جویی در فضا)
         count++;
       }
     }
 
-    // جمع کل
+    // محاسبات نهایی
+    y += 2; // فاصله رو کم کردم
     pdf.setDrawColor(5, 176, 132);
     pdf.line(15, y, 195, y);
-    y += 12;
+    y += 10;
     pdf.setFontSize(11);
     pdf.text(`Summe: ${document.getElementById("sumIncome").value} CHF`, 130, y);
     pdf.setTextColor(220, 53, 69);
-    pdf.text(`Tanken: ${document.getElementById("tanken").value || '0.00'} CHF`, 130, y+8);
-    pdf.text(`Auszahlung: ${document.getElementById("auszahlung").value || '0.00'} CHF`, 130, y+16);
+    pdf.text(`Tanken: ${document.getElementById("tanken").value || '0.00'} CHF`, 130, y+7);
+    pdf.text(`Auszahlung: ${document.getElementById("auszahlung").value || '0.00'} CHF`, 130, y+14);
     
-    y += 35;
+    y += 25; // فاصله رو کم کردم تا امضا جا بشه
     pdf.setFontSize(18);
     pdf.setFont(undefined, 'bold');
     pdf.setTextColor(5, 176, 132);
     pdf.text(`NETTO TOTAL: ${document.getElementById("total").value} CHF`, 15, y);
 
-    // امضا + متن UNTERSCHRIFT
+    // امضا
     if(isSigned) {
       pdf.setFontSize(10);
       pdf.setTextColor(100, 100, 100);
-      pdf.text("UNTERSCHRIFT", 15, y+4); // اضافه شدن کلمه Unterschrift بالای کادر
+      pdf.text("UNTERSCHRIFT", 15, y+5);
 
       const sigData = canvas.toDataURL("image/png");
       pdf.setFillColor(255, 255, 255);
-      pdf.rect(15, y+5, 60, 30, 'F');
-      pdf.addImage(sigData, 'PNG', 15, y+5, 60, 30);
+      pdf.rect(15, y+6, 60, 30, 'F');
+      pdf.addImage(sigData, 'PNG', 15, y+6, 60, 30);
     }
     
     return pdf;
   }
 
   async function sharePDF() {
-    if(!validateForm()) return; // بررسی اجباری بودن فیلدها
+    if(!validateForm()) return;
     
     const pdf = await generatePDF();
     const pdfBlob = pdf.output('blob');
@@ -277,7 +263,7 @@
   }
 
   async function submitData() {
-    if(!validateForm()) return; // بررسی اجباری بودن فیلدها
+    if(!validateForm()) return;
 
     const btn = document.getElementById("sendBtn");
     btn.disabled = true;
