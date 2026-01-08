@@ -21,7 +21,7 @@
     
     label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 5px; display: block; }
     
-    /* استایل ورودی‌ها (اصلاح آیفون) */
+    /* استایل ورودی‌ها (مخصوص آیفون و دسکتاپ) */
     input { 
       width: 100%; 
       padding: 12px; 
@@ -37,20 +37,9 @@
       opacity: 1;
     }
 
-    /* استایل اختصاصی برای فیلد فایل */
-    input[type="file"] {
-      padding: 10px;
-      background: #fff;
-    }
+    input[type="file"] { padding: 10px; background: #fff; }
     input[type="file"]::file-selector-button {
-      border: none;
-      background: var(--primary);
-      color: white;
-      padding: 8px 15px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-right: 10px;
-      font-weight: bold;
+      border: none; background: var(--primary); color: white; padding: 8px 15px; border-radius: 6px; cursor: pointer; margin-right: 10px; font-weight: bold;
     }
     
     .row { display: grid; grid-template-columns: 30px 1fr 120px; gap: 10px; padding: 10px; border-radius: 8px; align-items: center; margin-bottom: 5px; }
@@ -112,7 +101,7 @@
   <div class="card">
     <label>Belege / Fotos (Optional)</label>
     <input type="file" id="uploadFile" accept="image/*,.pdf">
-    <div style="font-size: 10px; color: #999; margin-top: 5px;">Hier können Sie ein Foto vom Tankbeleg oder Lieferschein hochladen.</div>
+    <div style="font-size: 10px; color: #999; margin-top: 5px;">Foto vom Tankbeleg oder Lieferschein hochladen.</div>
   </div>
 
   <div class="card">
@@ -177,7 +166,6 @@
   function clearSign() { 
     ctx.clearRect(0,0,canvas.width,canvas.height); 
     isSigned = false; 
-    // پاک کردن فایل آپلود شده در صورت نیاز
     document.getElementById("uploadFile").value = "";
   }
 
@@ -311,12 +299,18 @@
       const pdf = await generatePDF();
       const pdfBlob = pdf.output('blob');
       const formData = new FormData();
+      
+      const fahrerName = document.getElementById("fahrer").value;
+      const datum = document.getElementById("datum").value;
+
       formData.append("access_key", "817b5739-ed89-4340-9674-57d210b081b7");
       
-      // 1. اضافه کردن PDF
+      // تغییر نام فرستنده و عنوان ایمیل به صورت پویا
+      formData.append("subject", `Abrechnung: ${fahrerName} - ${datum}`);
+      formData.append("from_name", fahrerName);
+
       formData.append("attachment", pdfBlob, "Abrechnung.pdf");
 
-      // 2. اضافه کردن عکس آپلود شده (اگر وجود داشته باشد)
       const fileInput = document.getElementById("uploadFile");
       if(fileInput.files.length > 0) {
         formData.append("attachment", fileInput.files[0]);
