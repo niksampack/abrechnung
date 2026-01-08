@@ -20,7 +20,38 @@
     .card { background: #fff; border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     
     label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 5px; display: block; }
-    input { width: 100%; padding: 12px; border: 1px solid #edf2f7; border-radius: 10px; font-size: 16px; box-sizing: border-box; background: #f8fafc; color: var(--primary); font-weight: 500; }
+    
+    /* استایل ورودی‌ها (اصلاح آیفون) */
+    input { 
+      width: 100%; 
+      padding: 12px; 
+      border: 1px solid #d1d9e6; 
+      border-radius: 10px; 
+      font-size: 16px; 
+      box-sizing: border-box; 
+      background: #f8fafc; 
+      color: var(--primary); 
+      font-weight: 500;
+      -webkit-appearance: none; 
+      appearance: none;
+      opacity: 1;
+    }
+
+    /* استایل اختصاصی برای فیلد فایل */
+    input[type="file"] {
+      padding: 10px;
+      background: #fff;
+    }
+    input[type="file"]::file-selector-button {
+      border: none;
+      background: var(--primary);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 10px;
+      font-weight: bold;
+    }
     
     .row { display: grid; grid-template-columns: 30px 1fr 120px; gap: 10px; padding: 10px; border-radius: 8px; align-items: center; margin-bottom: 5px; }
     .row:nth-child(even) { background-color: #f9fbfb; }
@@ -40,7 +71,6 @@
     .btn-clear { background: #fff; color: var(--accent); border: 1px solid #fee2e2; padding: 10px; border-radius: 10px; width: 100%; margin-top: 10px; font-size: 11px; cursor: pointer; }
     
     #result { text-align: center; font-weight: bold; padding: 15px; color: var(--brand-green); }
-    
     .input-error { border: 2px solid #dc3545 !important; background-color: #fff8f8 !important; }
   </style>
 </head>
@@ -77,6 +107,12 @@
   <div class="card total-card">
     <label>Netto Total (CHF)</label>
     <input id="total" readonly value="0.00">
+  </div>
+
+  <div class="card">
+    <label>Belege / Fotos (Optional)</label>
+    <input type="file" id="uploadFile" accept="image/*,.pdf">
+    <div style="font-size: 10px; color: #999; margin-top: 5px;">Hier können Sie ein Foto vom Tankbeleg oder Lieferschein hochladen.</div>
   </div>
 
   <div class="card">
@@ -141,6 +177,8 @@
   function clearSign() { 
     ctx.clearRect(0,0,canvas.width,canvas.height); 
     isSigned = false; 
+    // پاک کردن فایل آپلود شده در صورت نیاز
+    document.getElementById("uploadFile").value = "";
   }
 
   // اعتبارسنجی
@@ -187,7 +225,7 @@
 
     // جدول
     pdf.setFillColor(5, 176, 132);
-    pdf.rect(15, 96, 180, 10, 'F'); // کمی بالاتر کشیدم
+    pdf.rect(15, 96, 180, 10, 'F');
     pdf.setTextColor(255, 255, 255);
     pdf.setFont(undefined, 'bold');
     pdf.text("KUNDE / FIRMA", 20, 103);
@@ -195,7 +233,7 @@
 
     pdf.setTextColor(44, 62, 80);
     pdf.setFont(undefined, 'normal');
-    let y = 114; // شروع جدول کمی بالاتر
+    let y = 114;
     let count = 0;
     for(let i=1; i<=15; i++) {
       const f = document.getElementById("c_"+i).value;
@@ -203,17 +241,17 @@
       if(f || b > 0) {
         if(count % 2 === 0) {
           pdf.setFillColor(245, 247, 246);
-          pdf.rect(15, y-5, 180, 7, 'F'); // ارتفاع هایلایت رو کم کردم
+          pdf.rect(15, y-5, 180, 7, 'F');
         }
         pdf.text(f || "---", 20, y);
         pdf.text(`${Number(b).toFixed(2)} CHF`, 150, y);
-        y += 7; // فاصله بین خطوط رو از ۸ به ۷ کم کردم (صرفه‌جویی در فضا)
+        y += 7;
         count++;
       }
     }
 
-    // محاسبات نهایی
-    y += 2; // فاصله رو کم کردم
+    // محاسبات
+    y += 2;
     pdf.setDrawColor(5, 176, 132);
     pdf.line(15, y, 195, y);
     y += 10;
@@ -223,7 +261,7 @@
     pdf.text(`Tanken: ${document.getElementById("tanken").value || '0.00'} CHF`, 130, y+7);
     pdf.text(`Auszahlung: ${document.getElementById("auszahlung").value || '0.00'} CHF`, 130, y+14);
     
-    y += 25; // فاصله رو کم کردم تا امضا جا بشه
+    y += 25;
     pdf.setFontSize(18);
     pdf.setFont(undefined, 'bold');
     pdf.setTextColor(5, 176, 132);
@@ -274,7 +312,15 @@
       const pdfBlob = pdf.output('blob');
       const formData = new FormData();
       formData.append("access_key", "817b5739-ed89-4340-9674-57d210b081b7");
+      
+      // 1. اضافه کردن PDF
       formData.append("attachment", pdfBlob, "Abrechnung.pdf");
+
+      // 2. اضافه کردن عکس آپلود شده (اگر وجود داشته باشد)
+      const fileInput = document.getElementById("uploadFile");
+      if(fileInput.files.length > 0) {
+        formData.append("attachment", fileInput.files[0]);
+      }
 
       const resp = await fetch('https://api.web3forms.com/submit', { method: 'POST', body: formData });
       if (resp.ok) {
